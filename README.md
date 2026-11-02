@@ -1,0 +1,38 @@
+# Weight-Space Claude
+
+Asking **Claude** the questions from [*Sparks of Weight-Space Programming*](https://rikiyat.github.io/blog/weight-space-programming/) (Takehi, Teoh, Zhang, Khattab, MIT CSAIL, Nov 2026), where GPT-6 "Astra" read and wrote neural-network weights as plain text. The authors published [every prompt and answer](https://github.com/RikiyaT/lm_understand-logs); this repo reruns their prompts verbatim through a tool-free Claude harness and shows both side by side.
+
+**Website:** https://nihilistau.github.io/weight-space-claude/
+
+| | Experiment | Status |
+|---|---|---|
+| 1 | Which game was this policy trained on? (weights as text, no tools) | see site |
+| 2 | What does this diffusion model generate? (no forward pass) | see site |
+| 5 | Write a MinAtar policy from scratch, one reply, no tools | see site |
+| 3, 4, 6-8 | Not started (6-8 need ~300M tokens each) | |
+
+## Quick start (Windows / any OS)
+
+```
+git clone --recurse-submodules https://github.com/nihilistau/weight-space-claude
+cd weight-space-claude
+uv sync
+uv run wsp check       # environment pinned and clean?
+uv run wsp validate    # our scorers reproduce the paper's published numbers?
+uv run wsp smoke       # Claude really has no tools / extra context?
+uv run wsp run exp1    # ask Claude, audit, score
+uv run wsp site        # rebuild docs/data/results.json
+```
+
+Needs [uv](https://docs.astral.sh/uv/) and [Claude Code](https://claude.com/claude-code) logged in. Python 3.11 is fetched by uv.
+
+## Where to read next
+
+- [guide/GUIDE.md](guide/GUIDE.md): how experiments like this work, and where this repo does each part
+- [NOTEBOOK.md](NOTEBOOK.md): the lab notebook: decisions, predictions, results, in order
+- [CLAUDE.md](CLAUDE.md): rules for agents working in this repo
+- [validation/report.json](validation/report.json): instrument checks against upstream
+
+## Credits and licenses
+
+Upstream logs, data and networks © the authors, CC BY 4.0; their scripts MIT; the MinAtar source inside Exp 5 prompts is GPL-3.0 (see `upstream/exp5_write_from_scratch/LICENSE-MinAtar`). This repo's code: MIT.

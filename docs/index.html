@@ -1,0 +1,225 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Weight-Space Claude</title>
+<meta name="description" content="Reproducing 'Sparks of Weight-Space Programming' with Claude: experiments, results, and how they were run.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<script src="vendor/marked.min.js"></script>
+<style>
+:root{
+  --bg:#f6f5f1; --panel:#ffffff; --ink:#1c1d1f; --muted:#62656b; --line:#dcd9d1;
+  --accent:#1f5f8b; --astra:#8a5a00; --claude:#b4542a; --ok:#2f7a3d; --bad:#a3302a; --code:#efede7;
+  --mono:'IBM Plex Mono',ui-monospace,monospace; --sans:'IBM Plex Sans',system-ui,sans-serif;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#131416; --panel:#1b1c1f; --ink:#e7e5df; --muted:#9a9ca1; --line:#2e3034;
+  --accent:#6fb0dd; --astra:#d9a43c; --claude:#e98a5e; --ok:#6cc27b; --bad:#ec6d64; --code:#222327;}}
+:root[data-theme="dark"]{
+  --bg:#131416; --panel:#1b1c1f; --ink:#e7e5df; --muted:#9a9ca1; --line:#2e3034;
+  --accent:#6fb0dd; --astra:#d9a43c; --claude:#e98a5e; --ok:#6cc27b; --bad:#ec6d64; --code:#222327;}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.55 var(--sans)}
+a{color:var(--accent)}
+header{border-bottom:1px solid var(--line);background:var(--panel)}
+.wrap{max-width:1180px;margin:0 auto;padding:0 16px}
+.top{display:flex;align-items:baseline;gap:16px;padding:18px 0 6px;flex-wrap:wrap}
+.top h1{font-size:20px;margin:0;font-weight:600;letter-spacing:-.01em}
+.top .sub{color:var(--muted);font-size:13px}
+.top .sp{flex:1}
+nav{display:flex;gap:2px;overflow-x:auto}
+nav button{background:none;border:0;border-bottom:2px solid transparent;padding:10px 12px;font:500 14px var(--sans);color:var(--muted);cursor:pointer;white-space:nowrap}
+nav button.on{color:var(--ink);border-color:var(--accent)}
+main.wrap{padding-top:24px;padding-bottom:80px}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:18px 20px;margin-bottom:18px}
+h2{font-size:18px;margin:0 0 6px;font-weight:600}
+h3{font-size:15px;margin:18px 0 8px;font-weight:600}
+.muted{color:var(--muted)}
+.small{font-size:13px}
+.tag{display:inline-block;font:500 11px var(--mono);padding:2px 6px;border-radius:3px;border:1px solid var(--line);color:var(--muted);text-transform:uppercase;letter-spacing:.04em}
+.tag.ok{color:var(--ok);border-color:currentColor}.tag.bad{color:var(--bad);border-color:currentColor}
+.who-astra{color:var(--astra)}.who-claude{color:var(--claude)}
+table{border-collapse:collapse;width:100%;font-size:14px}
+th,td{text-align:left;padding:7px 10px;border-bottom:1px solid var(--line);vertical-align:top}
+th{font-weight:500;color:var(--muted);font-size:12px;text-transform:uppercase;letter-spacing:.04em}
+td.num,th.num{text-align:right;font-family:var(--mono);font-variant-numeric:tabular-nums}
+.tablewrap{overflow-x:auto}
+pre,code{font-family:var(--mono);font-size:12.5px}
+pre{background:var(--code);padding:12px;border-radius:4px;overflow:auto;max-height:520px;margin:8px 0;white-space:pre-wrap;word-break:break-word}
+.md{overflow-wrap:anywhere}.md pre{white-space:pre}
+.md table{margin:8px 0}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:16px}.grid2>*{min-width:0}
+@media (max-width:820px){.grid2{grid-template-columns:1fr}}
+.col h4{margin:0 0 6px;font-size:13px;text-transform:uppercase;letter-spacing:.05em}
+details{border-top:1px solid var(--line);padding:8px 0}
+summary{cursor:pointer;font-weight:500}
+select{font:14px var(--sans);padding:5px 8px;background:var(--panel);color:var(--ink);border:1px solid var(--line);border-radius:4px;max-width:100%}
+.pipe{display:flex;flex-wrap:wrap;gap:8px;align-items:stretch;margin:12px 0}
+.step{flex:1 1 150px;border:1px solid var(--line);border-radius:5px;padding:10px 12px;background:var(--bg);position:relative}
+.step b{display:block;font-size:13px;margin-bottom:2px}
+.step span{font-size:12.5px;color:var(--muted)}
+.step .n{font:500 11px var(--mono);color:var(--accent)}
+.bars{display:grid;grid-template-columns:110px 1fr 70px;gap:4px 10px;align-items:center;font-size:13px;margin:6px 0 14px}
+.bar{height:14px;border-radius:2px;background:var(--muted);min-width:2px}
+.bar.astra{background:var(--astra)}.bar.claude{background:var(--claude)}.bar.ppo{background:var(--line);outline:1px solid var(--muted)}
+.drawings{display:flex;gap:18px;flex-wrap:wrap}
+.drawings pre{font-size:11px;line-height:1.05;max-height:none;margin:4px 0}
+.cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:12px}
+.card{border:1px solid var(--line);border-radius:5px;padding:12px 14px;background:var(--bg);cursor:pointer}
+.card:hover{border-color:var(--accent)}
+.card .t{font-weight:600;margin:4px 0}
+.empty{padding:14px;border:1px dashed var(--line);border-radius:5px;color:var(--muted)}
+button.theme{background:none;border:1px solid var(--line);color:var(--muted);border-radius:4px;padding:3px 8px;cursor:pointer;font:12px var(--sans)}
+</style>
+</head>
+<body>
+<header><div class="wrap">
+  <div class="top"><h1>Weight-Space Claude</h1>
+    <span class="sub">Reproducing <a href="https://rikiyat.github.io/blog/weight-space-programming/">Sparks of Weight-Space Programming</a> with Claude</span>
+    <span class="sp"></span><button class="theme" id="theme">theme</button></div>
+  <nav id="nav"></nav>
+</div></header>
+<main class="wrap" id="main"><p class="muted">Loading results…</p></main>
+<script>
+const $ = (s, el=document) => el.querySelector(s);
+const esc = s => String(s ?? '').replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const md = s => s ? marked.parse(s) : '<p class="muted">(none)</p>';
+const fmt = (n, d=0) => n==null ? '–' : Number(n).toLocaleString(undefined,{maximumFractionDigits:d,minimumFractionDigits:d});
+let D, tab = 'overview', expSel = {};
+
+try { const t = localStorage.getItem('theme'); if (t) document.documentElement.dataset.theme = t; } catch(e) {}
+$('#theme').onclick = () => {
+  const cur = document.documentElement.dataset.theme || (matchMedia('(prefers-color-scheme: dark)').matches ? 'dark':'light');
+  const nxt = cur === 'dark' ? 'light' : 'dark';
+  document.documentElement.dataset.theme = nxt;
+  try { localStorage.setItem('theme', nxt); } catch(e) {}
+};
+
+function usageTotals(u){ // works for Claude (input/cache_read/cache_creation) and Codex (input/cached) records
+  if(!u) return {inp:null,out:null};
+  const inp = (u.input_tokens||0) + (u.cache_read_input_tokens||0) + (u.cache_creation_input_tokens||0);
+  return {inp, out:u.output_tokens};
+}
+function latest(e){ return e.runs.find(r => !r.trial) || e.runs[0]; }
+
+function render(){
+  const tabs = [['overview','Overview'], ...D.experiments.map(e=>[e.id, e.id.replace('exp','Exp ')+' · '+e.title.split(' ').slice(0,3).join(' ')+'…']), ['validation','Instrument checks'], ['guide','How experiments work'], ['notebook','Lab notebook']];
+  $('#nav').innerHTML = tabs.map(([k,l]) => `<button class="${k===tab?'on':''}" data-k="${k}">${esc(l)}</button>`).join('');
+  $('#nav').querySelectorAll('button').forEach(b => b.onclick = () => { tab = b.dataset.k; location.hash = tab; render(); scrollTo(0,0); });
+  const m = $('#main');
+  if (tab==='overview') m.innerHTML = overview();
+  else if (tab==='validation') m.innerHTML = validation();
+  else if (tab==='guide') m.innerHTML = `<div class="panel md">${md(D.guide)}</div>`;
+  else if (tab==='notebook') m.innerHTML = `<div class="panel md">${md(D.notebook)}</div>`;
+  else { m.innerHTML = experiment(D.experiments.find(e=>e.id===tab)); bindExp(); }
+  m.querySelectorAll('[data-go]').forEach(c => c.onclick = () => { tab = c.dataset.go; render(); scrollTo(0,0); });
+}
+
+function overview(){
+  const steps = [
+    ['Pin','upstream/ is a git submodule locked to commit '+D.upstream_pin.slice(0,7)+': the original prompts, answers and networks, never edited.'],
+    ['Validate','Before asking Claude anything, our scorers re-score Astra\'s published answers and must reproduce the published numbers.'],
+    ['Ask','claude -p, all tools off, upstream\'s one-line system prompt, the prompt verbatim on stdin. One fresh conversation per case.'],
+    ['Record','Raw event stream, answer, thinking, tokens, exact command, git commit, CLI version: runs/&lt;exp&gt;/&lt;run&gt;/.'],
+    ['Audit','The event stream must show no tools offered and no tool calls, or the run is kept but never scored.'],
+    ['Score','The answer key is read only here. Exp 5 networks play 1,000 MinAtar episodes.'],
+    ['Publish','wsp site builds one results.json; this page only reads that file.'],
+  ];
+  const cards = D.experiments.map(e => {
+    const r = latest(e);
+    let status = r ? `<span class="tag ${r.trial?'':'ok'}">${r.trial?'trial run':'run'} ${esc(r.run_id)}</span>` : '<span class="tag">not run yet</span>';
+    return `<div class="card" data-go="${e.id}"><span class="tag">${e.id}</span> ${status}<div class="t">${esc(e.title)}</div><div class="small muted">${esc(e.question)}</div></div>`;
+  }).join('');
+  const v = D.validation;
+  return `<div class="panel"><h2>What this is</h2>
+  <p>On 2 Nov 2026, Takehi et al. (MIT CSAIL) showed an OpenAI model, "Astra", reading and writing neural-network weights directly as text: naming the game a policy plays from its weights alone, writing a working game-playing network from scratch in one reply. They published every prompt and answer. This lab asks the same questions to <span class="who-claude">Claude</span>, through a harness built to match theirs, and shows both side by side with <span class="who-astra">Astra</span>.</p>
+  <p class="small muted">Code: <a href="${D.repo_url}">${D.repo_url.replace('https://','')}</a> · Original logs: <a href="${D.upstream_url}">RikiyaT/lm_understand-logs @ ${D.upstream_pin.slice(0,7)}</a> · Built ${esc(D.built)}</p></div>
+  <div class="panel"><h2>How a result gets here</h2><div class="pipe">${steps.map((s,i)=>`<div class="step"><span class="n">${i+1}</span><b>${s[0]}</b><span>${s[1]}</span></div>`).join('')}</div>
+  <p class="small">Instrument checks: ${v ? (v.passed ? '<span class="tag ok">all passed</span>' : '<span class="tag bad">failures</span>') + ` <a href="#" data-go="validation">details</a>` : '<span class="tag">not run</span>'}</p></div>
+  <div class="panel"><h2>Experiments</h2><div class="cards">${cards}</div></div>
+  <div class="panel"><h2>Known differences from the original</h2><ul>${D.common_deviations.map(d=>`<li>${esc(d)}</li>`).join('')}</ul></div>`;
+}
+
+function validation(){
+  const v = D.validation;
+  if (!v) return `<div class="panel"><h2>Instrument checks</h2><p class="empty">Not run yet: <code>uv run wsp validate</code></p></div>`;
+  return `<div class="panel"><h2>Instrument checks</h2>
+  <p>A scorer we wrote ourselves is a measuring instrument, and an untested instrument makes every number it produces suspect. So each one first has to reproduce the paper's own published results from the paper's own published answers. Run ${esc(v.when)} against upstream ${esc((v.upstream.commit||'').slice(0,7))}.</p>
+  <div class="tablewrap"><table><tr><th>Check</th><th>Result</th><th>Detail</th></tr>${v.checks.map(c=>`<tr><td>${esc(c.name)}</td><td><span class="tag ${c.passed?'ok':'bad'}">${c.passed?'pass':'fail'}</span></td><td class="small">${esc(c.detail)}</td></tr>`).join('')}</table></div>
+  <p class="small muted">For the game scorer, z is the gap between our mean and the published mean in units of their combined standard error. Episodes are random, so the two never match exactly; |z| &lt; 3 means "the same within noise".</p></div>`;
+}
+
+function summaryTable(e, r){
+  if (e.kind === 'label'){
+    return `<table><tr><th>Case</th><th class="who-astra">Astra answer</th><th class="num">conf.</th><th class="who-claude">Claude answer</th><th class="num">conf.</th><th class="num">Claude tokens in / out</th></tr>
+    ${e.cases.map(c => { const a = e.astra[c], cl = r?.cases?.[c], s = cl?.score; const u = usageTotals(cl?.audit?.usage);
+      const mark = x => x==null ? '' : x ? '<span class="tag ok">right</span> ' : '<span class="tag bad">wrong</span> ';
+      return `<tr><td>${c}</td><td>${mark(a.correct)}${esc(a.guess)}</td><td class="num">${a.confidence??'–'}%</td>
+      <td>${s ? (s.excluded ? `<span class="tag bad">${esc(s.excluded)}</span>` : mark(s.correct)+esc(s.guess??'no answer')) : '<span class="muted">–</span>'}</td><td class="num">${s?.confidence??'–'}${s?.confidence!=null?'%':''}</td>
+      <td class="num">${u.inp!=null?fmt(u.inp)+' / '+fmt(u.out):'–'}</td></tr>`; }).join('')}</table>`;
+  }
+  const all = e.cases.flatMap(c => [e.astra[c].mean, e.astra[c].ppo500, r?.cases?.[c]?.score?.mean]).filter(x=>x>0);
+  const max = Math.log10(Math.max(...all, 10) * 1.2);
+  const w = v => v>0 ? Math.max(1, 100 * Math.log10(1+v) / max) : 0;
+  return e.cases.map(c => { const a = e.astra[c], s = r?.cases?.[c]?.score;
+    const rows = [['PPO 100M steps', a.ppo100, 'ppo'], ['PPO 500M steps', a.ppo500, 'ppo'], ['Astra, one reply', a.mean, 'astra'], ['Claude, one reply', s?.mean, 'claude']];
+    return `<h3>${c}</h3><div class="bars">${rows.map(([l,v,k]) => `<span class="small">${l}</span><div><div class="bar ${k}" style="width:${v==null?0:w(v)}%"></div></div><span class="num small">${v==null?'–':fmt(v,1)}</span>`).join('')}</div>`;
+  }).join('') + `<p class="small muted">Mean score over 1,000 episodes, bar length on a log scale. PPO bars are the best seed upstream trained.</p>`;
+}
+
+function experiment(e){
+  const r = e.runs.find(x => x.run_id === expSel[e.id]) || latest(e);
+  const runPick = e.runs.length ? `<select id="runpick">${e.runs.map(x=>`<option value="${esc(x.run_id)}" ${x===r?'selected':''}>${esc(x.run_id)}${x.trial?' (trial)':''}</option>`).join('')}</select>` : '';
+  const caseSel = expSel[e.id+':case'] || e.cases[0];
+  return `<div class="panel"><span class="tag">${e.id}</span> <span class="tag">effort ${esc(e.effort)}</span>
+    <h2 style="margin-top:8px">${esc(e.title)}</h2><p>${esc(e.question)}</p>
+    <p class="small muted">Original: <a href="${D.upstream_url}/${e.upstream_dir}">${e.upstream_dir}</a>${e.deviations.length?' · Deviations: '+e.deviations.map(esc).join('; '):''}</p></div>
+  <div class="panel"><div style="display:flex;gap:12px;align-items:center;flex-wrap:wrap"><h2 style="margin:0">Results</h2><span class="sp" style="flex:1"></span>${runPick}</div>
+    ${r ? runMeta(r) : '<p class="empty">No Claude run yet. <code>uv run wsp run '+e.id+'</code></p>'}
+    <div class="tablewrap">${summaryTable(e, r)}</div></div>
+  <div class="panel"><div style="display:flex;gap:12px;align-items:center;flex-wrap:wrap"><h2 style="margin:0">Side by side</h2><span style="flex:1"></span>
+    <select id="casepick">${e.cases.map(c=>`<option ${c===caseSel?'selected':''}>${c}</option>`).join('')}</select></div>
+    ${sideBySide(e, r, caseSel)}</div>`;
+}
+
+function runMeta(r){
+  return `<p class="small muted">Model requested <b>${esc(r.model_requested)}</b>, served <b>${esc(Object.values(r.cases)[0]?.audit?.model||'?')}</b> · ${esc(r.claude_cli||'')} · code <a href="${D.repo_url}/tree/${r.repo_commit}">${(r.repo_commit||'').slice(0,7)}</a>
+  ${r.trial?' · <span class="tag bad">trial: run with uncommitted code</span>':''}${r.note?' · '+esc(r.note):''}</p>`;
+}
+
+function sideBySide(e, r, c){
+  const a = e.astra[c], cl = r?.cases?.[c];
+  let extra = '';
+  if (e.id === 'exp2'){
+    const grid = g => g ? `<pre>${esc(g.join('\n'))}</pre>` : '<p class="muted small">no drawing</p>';
+    extra = `<h3>The drawings</h3><div class="drawings">
+      <div><div class="small who-astra">Astra's example (fill ${a.fill_ratio??'–'})</div>${grid(a.example)}</div>
+      <div><div class="small who-claude">Claude's example (fill ${cl?.score?.fill_ratio??'–'})</div>${grid(cl?.score?.example)}</div>
+      <div style="flex-basis:100%"><div class="small muted">What the model really generates (samples never shown to either model)</div><div class="drawings">${(a.samples||'').split(/\n\s*\n/).filter(x=>x.trim()).map(x=>`<pre>${esc(x.replace(/^\n+|\n+$/g,''))}</pre>`).join('')}</div></div></div>
+      <p class="small muted">Fill = share of '#' between the first and last '#' of each row: near 1 is a filled shape, low is an outline. The models generate filled shapes; Astra drew outlines.</p>`;
+  }
+  if (e.kind === 'minatar' && cl?.apply){
+    const p = cl.apply; extra = `<p class="small">Claude's edits block: ${p.applied}/${p.statements} statements read, ${p.errors.length} errors, ${fmt(p.nonzero_total)} of ${fmt(p.parameters)} weights nonzero${p.cut_off?', <span class="tag bad">reply cut off</span>':''}.</p>`;
+  }
+  const au = cl?.audit;
+  const audit = au ? `<p class="small">${au.tool_free?'<span class="tag ok">tool-free</span>':'<span class="tag bad">tool use</span>'} · ${fmt(cl.wall_s,0)} s · in ${fmt(usageTotals(au.usage).inp)} / out ${fmt(au.usage.output_tokens)} tokens${au.cost_usd!=null?` · API-equivalent $${fmt(au.cost_usd,2)}`:''}</p>` : '';
+  const au2 = usageTotals(a.usage);
+  return `${extra}<div class="grid2" style="margin-top:12px">
+    <div class="col"><h4 class="who-astra">Astra</h4><p class="small muted">${fmt(a.wall_s,0)} s · in ${fmt(au2.inp)} / out ${fmt(au2.out)} tokens</p><div class="md">${md(a.answer)}</div></div>
+    <div class="col"><h4 class="who-claude">Claude</h4>${cl ? audit + `<div class="md">${md(cl.answer)}</div>` + (cl.thinking ? `<details><summary>Claude's thinking</summary><pre>${esc(cl.thinking)}</pre></details>` : '') : '<p class="empty">Not run yet.</p>'}</div></div>`;
+}
+
+function bindExp(){
+  const e = D.experiments.find(x=>x.id===tab);
+  const rp = $('#runpick'); if (rp) rp.onchange = () => { expSel[e.id] = rp.value; render(); };
+  const cp = $('#casepick'); if (cp) cp.onchange = () => { expSel[e.id+':case'] = cp.value; render(); };
+}
+
+addEventListener('hashchange', () => { const h = location.hash.slice(1); if (D && h && h !== tab) { tab = h; render(); } });
+fetch('data/results.json').then(r=>r.json()).then(d => { D = d; const h = location.hash.slice(1); if (h) tab = h; render(); })
+  .catch(err => $('#main').innerHTML = `<p class="empty">Could not load data/results.json (${esc(err)}). Run <code>uv run wsp site</code>.</p>`);
+</script>
+</body>
+</html>
