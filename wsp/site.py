@@ -13,6 +13,18 @@ UPSTREAM_URL = f"https://github.com/RikiyaT/lm_understand-logs/tree/{P.UPSTREAM_
 MAX_THINKING = 60_000
 
 
+def model_label(model_id: str | None) -> str:
+    """claude-opus-5-5 -> Claude Opus 5.5 (falls back to the raw id)."""
+    if not model_id:
+        return "Claude (unknown model)"
+    parts = model_id.split("-")
+    if parts[0] == "claude" and len(parts) >= 3:
+        fam = parts[1].capitalize()
+        ver = ".".join(p for p in parts[2:] if p.isdigit() and len(p) < 4)
+        return f"Claude {fam} {ver}".strip()
+    return model_id
+
+
 def _read(p, limit=None):
     if not p.exists():
         return None
@@ -57,13 +69,16 @@ def build():
                             "cmd": rec["cmd"], "answer": _read(cd / "answer.md"),
                             "thinking": _read(cd / "thinking.md", MAX_THINKING),
                             "apply": _load(cd / "apply.json")}
-            runs.append({"run_id": m["run_id"], "status": m["status"], "trial": m.get("trial"), "note": m.get("note"),
+            served = next((c["audit"].get("model") for c in cases.values() if c["audit"].get("model")), None)
+            runs.append({"run_id": m["run_id"], "model_served": served, "model_label": model_label(served), "status": m["status"], "trial": m.get("trial"), "note": m.get("note"),
                          "started": m["started"], "model_requested": m["model_requested"], "effort": m["effort"],
                          "repo_commit": m["repo"]["commit"], "claude_cli": m.get("claude_cli"),
                          "environment": m.get("environment"), "deviations": m.get("deviations"), "cases": cases})
         out["experiments"].append({"id": name, "title": e["title"], "question": e["question"], "kind": e["kind"],
                                    "effort": e["effort"], "cases": e["cases"], "upstream_dir": e["dir"],
                                    "deviations": e["deviations"], "astra": astra, "runs": runs})
+    out["models_used"] = sorted({r["model_label"] for e in out["experiments"] for r in e["runs"] if not r.get("trial")})
+    out["model_ids"] = sorted({r["model_served"] for e in out["experiments"] for r in e["runs"] if r.get("model_served") and not r.get("trial")})
     path = P.ROOT / "docs/data/results.json"
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(json.dumps(out, ensure_ascii=False), encoding="utf-8")

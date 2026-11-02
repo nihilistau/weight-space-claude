@@ -61,7 +61,7 @@ select{font:14px var(--sans);padding:5px 8px;background:var(--panel);color:var(-
 .step b{display:block;font-size:13px;margin-bottom:2px}
 .step span{font-size:12.5px;color:var(--muted)}
 .step .n{font:500 11px var(--mono);color:var(--accent)}
-.bars{display:grid;grid-template-columns:110px 1fr 70px;gap:4px 10px;align-items:center;font-size:13px;margin:6px 0 14px}
+.bars{display:grid;grid-template-columns:150px 1fr 70px;gap:4px 10px;align-items:center;font-size:13px;margin:6px 0 14px}
 .bar{height:14px;border-radius:2px;background:var(--muted);min-width:2px}
 .bar.astra{background:var(--astra)}.bar.claude{background:var(--claude)}.bar.ppo{background:var(--line);outline:1px solid var(--muted)}
 .drawings{display:flex;gap:18px;flex-wrap:wrap}
@@ -77,7 +77,7 @@ button.theme{background:none;border:1px solid var(--line);color:var(--muted);bor
 <body>
 <header><div class="wrap">
   <div class="top"><h1>Weight-Space Claude</h1>
-    <span class="sub">Reproducing <a href="https://rikiyat.github.io/blog/weight-space-programming/">Sparks of Weight-Space Programming</a> with Claude</span>
+    <span class="sub">Reproducing <a href="https://rikiyat.github.io/blog/weight-space-programming/">Sparks of Weight-Space Programming</a> with <b id="modelname">Claude</b></span>
     <span class="sp"></span><button class="theme" id="theme">theme</button></div>
   <nav id="nav"></nav>
 </div></header>
@@ -102,6 +102,7 @@ function usageTotals(u){ // works for Claude (input/cache_read/cache_creation) a
   const inp = (u.input_tokens||0) + (u.cache_read_input_tokens||0) + (u.cache_creation_input_tokens||0);
   return {inp, out:u.output_tokens};
 }
+const ML = r => r?.model_label || 'Claude';
 function latest(e){ return e.runs.find(r => !r.trial) || e.runs[0]; }
 
 function render(){
@@ -134,7 +135,7 @@ function overview(){
   }).join('');
   const v = D.validation;
   return `<div class="panel"><h2>What this is</h2>
-  <p>On 2 Nov 2026, Takehi et al. (MIT CSAIL) showed an OpenAI model, "Astra", reading and writing neural-network weights directly as text: naming the game a policy plays from its weights alone, writing a working game-playing network from scratch in one reply. They published every prompt and answer. This lab asks the same questions to <span class="who-claude">Claude</span>, through a harness built to match theirs, and shows both side by side with <span class="who-astra">Astra</span>.</p>
+  <p>On 2 Nov 2026, Takehi et al. (MIT CSAIL) showed an OpenAI model, "Astra", reading and writing neural-network weights directly as text: naming the game a policy plays from its weights alone, writing a working game-playing network from scratch in one reply. They published every prompt and answer. This lab asks the same questions to <span class="who-claude"><b>${esc(D.models_used.join(', ')||'Claude')}</b></span> (<code>${esc(D.model_ids.join(', '))}</code>, run through Claude Code), through a harness built to match theirs, and shows both side by side with <span class="who-astra">Astra</span>.</p>
   <p class="small muted">Code: <a href="${D.repo_url}">${D.repo_url.replace('https://','')}</a> · Original logs: <a href="${D.upstream_url}">RikiyaT/lm_understand-logs @ ${D.upstream_pin.slice(0,7)}</a> · Built ${esc(D.built)}</p></div>
   <div class="panel"><h2>How a result gets here</h2><div class="pipe">${steps.map((s,i)=>`<div class="step"><span class="n">${i+1}</span><b>${s[0]}</b><span>${s[1]}</span></div>`).join('')}</div>
   <p class="small">Instrument checks: ${v ? (v.passed ? '<span class="tag ok">all passed</span>' : '<span class="tag bad">failures</span>') + ` <a href="#" data-go="validation">details</a>` : '<span class="tag">not run</span>'}</p></div>
@@ -153,7 +154,7 @@ function validation(){
 
 function summaryTable(e, r){
   if (e.kind === 'label'){
-    return `<table><tr><th>Case</th><th class="who-astra">Astra answer</th><th class="num">conf.</th><th class="who-claude">Claude answer</th><th class="num">conf.</th><th class="num">Claude tokens in / out</th></tr>
+    return `<table><tr><th>Case</th><th class="who-astra">Astra answer</th><th class="num">conf.</th><th class="who-claude">${esc(ML(r))} answer</th><th class="num">conf.</th><th class="num">tokens in / out</th></tr>
     ${e.cases.map(c => { const a = e.astra[c], cl = r?.cases?.[c], s = cl?.score; const u = usageTotals(cl?.audit?.usage);
       const mark = x => x==null ? '' : x ? '<span class="tag ok">right</span> ' : '<span class="tag bad">wrong</span> ';
       return `<tr><td>${c}</td><td>${mark(a.correct)}${esc(a.guess)}</td><td class="num">${a.confidence??'–'}%</td>
@@ -164,7 +165,7 @@ function summaryTable(e, r){
   const max = Math.log10(Math.max(...all, 10) * 1.2);
   const w = v => v>0 ? Math.max(1, 100 * Math.log10(1+v) / max) : 0;
   return e.cases.map(c => { const a = e.astra[c], s = r?.cases?.[c]?.score;
-    const rows = [['PPO 100M steps', a.ppo100, 'ppo'], ['PPO 500M steps', a.ppo500, 'ppo'], ['Astra, one reply', a.mean, 'astra'], ['Claude, one reply', s?.mean, 'claude']];
+    const rows = [['PPO 100M steps', a.ppo100, 'ppo'], ['PPO 500M steps', a.ppo500, 'ppo'], ['Astra, one reply', a.mean, 'astra'], [ML(r)+', one reply', s?.mean, 'claude']];
     return `<h3>${c}</h3><div class="bars">${rows.map(([l,v,k]) => `<span class="small">${l}</span><div><div class="bar ${k}" style="width:${v==null?0:w(v)}%"></div></div><span class="num small">${v==null?'–':fmt(v,1)}</span>`).join('')}</div>`;
   }).join('') + `<p class="small muted">Mean score over 1,000 episodes, bar length on a log scale. PPO bars are the best seed upstream trained.</p>`;
 }
@@ -178,14 +179,28 @@ function experiment(e){
     <p class="small muted">Original: <a href="${D.upstream_url}/${e.upstream_dir}">${e.upstream_dir}</a>${e.deviations.length?' · Deviations: '+e.deviations.map(esc).join('; '):''}</p></div>
   <div class="panel"><div style="display:flex;gap:12px;align-items:center;flex-wrap:wrap"><h2 style="margin:0">Results</h2><span class="sp" style="flex:1"></span>${runPick}</div>
     ${r ? runMeta(r) : '<p class="empty">No Claude run yet. <code>uv run wsp run '+e.id+'</code></p>'}
-    <div class="tablewrap">${summaryTable(e, r)}</div></div>
+    <div class="tablewrap">${summaryTable(e, r)}</div>${allRuns(e)}</div>
   <div class="panel"><div style="display:flex;gap:12px;align-items:center;flex-wrap:wrap"><h2 style="margin:0">Side by side</h2><span style="flex:1"></span>
     <select id="casepick">${e.cases.map(c=>`<option ${c===caseSel?'selected':''}>${c}</option>`).join('')}</select></div>
     ${sideBySide(e, r, caseSel)}</div>`;
 }
 
+function allRuns(e){
+  const runs = e.runs.filter(x => !x.trial);
+  if (runs.length < 2) return '';
+  const cell = (e, s) => !s ? '–' : s.excluded ? 'excl.' : e.kind === 'label'
+      ? `${s.correct ? '✓' : '✗'} ${esc(s.guess ?? '?')} ${s.confidence ?? '–'}%${s.fill_ratio != null ? ` · fill ${s.fill_ratio}` : ''}`
+      : `${fmt(s.mean, 1)} ± ${fmt(s.se, 1)}`;
+  const head = `<tr><th>Run</th><th>Model · effort</th>${e.cases.map(c => `<th>${c}</th>`).join('')}</tr>`;
+  const astra = e.kind === 'label'
+      ? `<tr><td class="who-astra">Astra (paper)</td><td class="small">gpt-6-astra · high</td>${e.cases.map(c => { const a = e.astra[c]; return `<td class="small">${a.correct ? '✓' : '✗'} ${esc(a.guess)} ${a.confidence}%${a.fill_ratio != null ? ` · fill ${a.fill_ratio}` : ''}</td>`; }).join('')}</tr>`
+      : `<tr><td class="who-astra">Astra (paper)</td><td class="small">gpt-6-astra · xhigh</td>${e.cases.map(c => `<td class="small">${fmt(e.astra[c].mean, 1)}</td>`).join('')}</tr>`;
+  return `<h3>All runs (${runs.length})</h3><div class="tablewrap"><table>${head}${astra}${runs.map(x => `<tr><td class="small"><code>${esc(x.run_id)}</code></td><td class="small">${esc(ML(x))} · ${esc(x.effort)}</td>${e.cases.map(c => `<td class="small">${cell(e, x.cases[c]?.score)}</td>`).join('')}</tr>`).join('')}</table></div>
+  <p class="small muted">Every run is an independent fresh conversation with the same prompt. Use the run picker above to see any run's answers in full.</p>`;
+}
+
 function runMeta(r){
-  return `<p class="small muted">Model requested <b>${esc(r.model_requested)}</b>, served <b>${esc(Object.values(r.cases)[0]?.audit?.model||'?')}</b> · ${esc(r.claude_cli||'')} · code <a href="${D.repo_url}/tree/${r.repo_commit}">${(r.repo_commit||'').slice(0,7)}</a>
+  return `<p class="small muted">Model: <b>${esc(ML(r))}</b> (requested <code>${esc(r.model_requested)}</code>, served <code>${esc(r.model_served||'?')}</code>), effort ${esc(r.effort)} · ${esc(r.claude_cli||'')} · code <a href="${D.repo_url}/tree/${r.repo_commit}">${(r.repo_commit||'').slice(0,7)}</a>
   ${r.trial?' · <span class="tag bad">trial: run with uncommitted code</span>':''}${r.note?' · '+esc(r.note):''}</p>`;
 }
 
@@ -196,19 +211,19 @@ function sideBySide(e, r, c){
     const grid = g => g ? `<pre>${esc(g.join('\n'))}</pre>` : '<p class="muted small">no drawing</p>';
     extra = `<h3>The drawings</h3><div class="drawings">
       <div><div class="small who-astra">Astra's example (fill ${a.fill_ratio??'–'})</div>${grid(a.example)}</div>
-      <div><div class="small who-claude">Claude's example (fill ${cl?.score?.fill_ratio??'–'})</div>${grid(cl?.score?.example)}</div>
+      <div><div class="small who-claude">${esc(ML(r))}'s example (fill ${cl?.score?.fill_ratio??'–'})</div>${grid(cl?.score?.example)}</div>
       <div style="flex-basis:100%"><div class="small muted">What the model really generates (samples never shown to either model)</div><div class="drawings">${(a.samples||'').split(/\n\s*\n/).filter(x=>x.trim()).map(x=>`<pre>${esc(x.replace(/^\n+|\n+$/g,''))}</pre>`).join('')}</div></div></div>
       <p class="small muted">Fill = share of '#' between the first and last '#' of each row: near 1 is a filled shape, low is an outline. The models generate filled shapes; Astra drew outlines.</p>`;
   }
   if (e.kind === 'minatar' && cl?.apply){
-    const p = cl.apply; extra = `<p class="small">Claude's edits block: ${p.applied}/${p.statements} statements read, ${p.errors.length} errors, ${fmt(p.nonzero_total)} of ${fmt(p.parameters)} weights nonzero${p.cut_off?', <span class="tag bad">reply cut off</span>':''}.</p>`;
+    const p = cl.apply; extra = `<p class="small">${esc(ML(r))}'s edits block: ${p.applied}/${p.statements} statements read, ${p.errors.length} errors, ${fmt(p.nonzero_total)} of ${fmt(p.parameters)} weights nonzero${p.cut_off?', <span class="tag bad">reply cut off</span>':''}.</p>`;
   }
   const au = cl?.audit;
   const audit = au ? `<p class="small">${au.tool_free?'<span class="tag ok">tool-free</span>':'<span class="tag bad">tool use</span>'} · ${fmt(cl.wall_s,0)} s · in ${fmt(usageTotals(au.usage).inp)} / out ${fmt(au.usage.output_tokens)} tokens${au.cost_usd!=null?` · API-equivalent $${fmt(au.cost_usd,2)}`:''}</p>` : '';
   const au2 = usageTotals(a.usage);
   return `${extra}<div class="grid2" style="margin-top:12px">
     <div class="col"><h4 class="who-astra">Astra</h4><p class="small muted">${fmt(a.wall_s,0)} s · in ${fmt(au2.inp)} / out ${fmt(au2.out)} tokens</p><div class="md">${md(a.answer)}</div></div>
-    <div class="col"><h4 class="who-claude">Claude</h4>${cl ? audit + `<div class="md">${md(cl.answer)}</div>` + (cl.thinking ? `<details><summary>Claude's thinking</summary><pre>${esc(cl.thinking)}</pre></details>` : '') : '<p class="empty">Not run yet.</p>'}</div></div>`;
+    <div class="col"><h4 class="who-claude">${esc(ML(r))} <span class="muted small">(${esc(r?.model_served||'')})</span></h4>${cl ? audit + `<div class="md">${md(cl.answer)}</div>` + (cl.thinking ? `<details><summary>${esc(ML(r))}'s thinking</summary><pre>${esc(cl.thinking)}</pre></details>` : '') : '<p class="empty">Not run yet.</p>'}</div></div>`;
 }
 
 function bindExp(){
@@ -218,7 +233,7 @@ function bindExp(){
 }
 
 addEventListener('hashchange', () => { const h = location.hash.slice(1); if (D && h && h !== tab) { tab = h; render(); } });
-fetch('data/results.json').then(r=>r.json()).then(d => { D = d; const h = location.hash.slice(1); if (h) tab = h; render(); })
+fetch('data/results.json').then(r=>r.json()).then(d => { D = d; if (d.models_used?.length) $('#modelname').textContent = d.models_used.join(', '); const h = location.hash.slice(1); if (h) tab = h; render(); })
   .catch(err => $('#main').innerHTML = `<p class="empty">Could not load data/results.json (${esc(err)}). Run <code>uv run wsp site</code>.</p>`);
 </script>
 </body>

@@ -50,7 +50,7 @@ EXPERIMENTS = {
 }
 
 COMMON_DEVIATIONS = [
-    "Model: Claude (via Claude Code `claude -p`) instead of gpt-6-astra (via Codex `codex exec`).",
+    "Model: Claude Opus 5.5 (`claude-opus-5-5`, via Claude Code `claude -p`) instead of gpt-6-astra (via Codex `codex exec`).",
     "Reasoning effort uses Claude's level of the same name (high / xhigh); the two scales are not calibrated to each other.",
     "Claude Code returns its own thinking (or a summary of it) instead of Codex's reasoning summaries.",
     "Claude Code in -p mode adds an identity line and a short environment block (temp working folder, OS, date, model name) "

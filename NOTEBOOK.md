@@ -90,3 +90,9 @@ The paper's notable failure was that Astra drew every shape as an outline while 
 1. Repeats (`--repeat 3`) for Exp 2, to see whether the solid-vs-outline difference is stable.
 2. Exp 5 at `max` effort, or `high`, to see whether score tracks thinking.
 3. Exp 4 (fix the car policy: one reply, ~355K-token prompt): the last single-turn, no-tool experiment.
+
+## 2026-11-03: Labelling, and Exp 2 repeats
+
+- README and site now name the model explicitly (**Claude Opus 5.5**, `claude-opus-5-5`), taken from the served-model field in each run's event stream rather than typed by hand, so a future Sonnet/Fable run labels itself. Experiment pages get an "All runs" table.
+- **Exp 2 × 3 repeats** (same prompts, fresh conversations, effort `high`), to check whether the first run's solid square and triangle hold up or were luck.
+  *Prediction (Claude-the-assistant):* shape identification stays 3/3 in every repeat. Drawings: the square drawn solid in at least 2 of 3; the circle mostly an outline; the triangle a coin flip.
