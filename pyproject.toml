@@ -17,3 +17,21 @@ build-backend = "hatchling.build"
 
 [tool.hatch.build.targets.wheel]
 packages = ["wsp"]
+
+[dependency-groups]
+# Experiment 8b only (`uv sync --group exp8`): checkpoint editing, GGUF conversion, grading
+exp8 = [
+    "torch>=2.6",
+    "transformers>=5.0",
+    "safetensors",
+    "sentencepiece",
+    "huggingface_hub",
+    "requests",
+    "jinja2",
+    "pyyaml",
+    "tqdm",
+    "protobuf",
+    "math-verify==0.9.0",
+    "latex2sympy2_extended==1.11.0",
+    "antlr4-python3-runtime==4.13.2",
+]

@@ -6,6 +6,7 @@
   wsp run exp1 [options]        ask Claude (one fresh conversation per case), then score
   wsp score exp1 [RUN_ID]       (re)score a run
   wsp site                      rebuild docs/data/results.json for the website
+  wsp 8b ...                    Experiment 8b (quantisation study, no LLM calls); `wsp 8b` for help
 """
 from __future__ import annotations
 
@@ -241,6 +242,9 @@ def main(argv=None):
     sc.add_argument("--workers", type=int, default=8)
     sc.set_defaults(f=cmd_score)
     sub.add_parser("site").set_defaults(f=cmd_site)
+    e8 = sub.add_parser("8b", help="Experiment 8b: Astra's Qwen edit under quantisation (see wsp/exp8b.py)")
+    e8.add_argument("rest", nargs=argparse.REMAINDER)
+    e8.set_defaults(f=lambda a: __import__("wsp.exp8b", fromlist=["main"]).main(a.rest) or 0)
     a = p.parse_args(argv)
     sys.exit(a.f(a))
 

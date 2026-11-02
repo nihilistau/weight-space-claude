@@ -5,3 +5,4 @@ __pycache__/
 
 validation/_*
 *.log.tmp
+work/

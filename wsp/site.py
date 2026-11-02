@@ -77,6 +77,8 @@ def build():
         out["experiments"].append({"id": name, "title": e["title"], "question": e["question"], "kind": e["kind"],
                                    "effort": e["effort"], "cases": e["cases"], "upstream_dir": e["dir"],
                                    "deviations": e["deviations"], "astra": astra, "runs": runs})
+    e8 = P.ROOT / "runs/exp8b/summary.json"
+    out["exp8b"] = _load(e8)
     out["models_used"] = sorted({r["model_label"] for e in out["experiments"] for r in e["runs"] if not r.get("trial")})
     out["model_ids"] = sorted({r["model_served"] for e in out["experiments"] for r in e["runs"] if r.get("model_served") and not r.get("trial")})
     path = P.ROOT / "docs/data/results.json"

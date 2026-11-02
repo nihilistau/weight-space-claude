@@ -106,12 +106,13 @@ const ML = r => r?.model_label || 'Claude';
 function latest(e){ return e.runs.find(r => !r.trial) || e.runs[0]; }
 
 function render(){
-  const tabs = [['overview','Overview'], ...D.experiments.map(e=>[e.id, e.id.replace('exp','Exp ')+' · '+e.title.split(' ').slice(0,3).join(' ')+'…']), ['validation','Instrument checks'], ['guide','How experiments work'], ['notebook','Lab notebook']];
+  const tabs = [['overview','Overview'], ...D.experiments.map(e=>[e.id, e.id.replace('exp','Exp ')+' · '+e.title.split(' ').slice(0,3).join(' ')+'…']), ...(D.exp8b?[['exp8b','Exp 8b · Qwen edit vs quantisation']]:[]), ['validation','Instrument checks'], ['guide','How experiments work'], ['notebook','Lab notebook']];
   $('#nav').innerHTML = tabs.map(([k,l]) => `<button class="${k===tab?'on':''}" data-k="${k}">${esc(l)}</button>`).join('');
   $('#nav').querySelectorAll('button').forEach(b => b.onclick = () => { tab = b.dataset.k; location.hash = tab; render(); scrollTo(0,0); });
   const m = $('#main');
   if (tab==='overview') m.innerHTML = overview();
   else if (tab==='validation') m.innerHTML = validation();
+  else if (tab==='exp8b') m.innerHTML = exp8b();
   else if (tab==='guide') m.innerHTML = `<div class="panel md">${md(D.guide)}</div>`;
   else if (tab==='notebook') m.innerHTML = `<div class="panel md">${md(D.notebook)}</div>`;
   else { m.innerHTML = experiment(D.experiments.find(e=>e.id===tab)); bindExp(); }
@@ -130,7 +131,7 @@ function overview(){
   ];
   const cards = D.experiments.map(e => {
     const r = latest(e);
-    let status = r ? `<span class="tag ${r.trial?'':'ok'}">${r.trial?'trial run':'run'} ${esc(r.run_id)}</span>` : '<span class="tag">not run yet</span>';
+    let status = r ? `<span class="tag ${r.trial?'':'ok'}">${r.trial?'trial run':'latest run'} · ${esc(ML(r))}</span>` : '<span class="tag">not run yet</span>';
     return `<div class="card" data-go="${e.id}"><span class="tag">${e.id}</span> ${status}<div class="t">${esc(e.title)}</div><div class="small muted">${esc(e.question)}</div></div>`;
   }).join('');
   const v = D.validation;
@@ -141,6 +142,33 @@ function overview(){
   <p class="small">Instrument checks: ${v ? (v.passed ? '<span class="tag ok">all passed</span>' : '<span class="tag bad">failures</span>') + ` <a href="#" data-go="validation">details</a>` : '<span class="tag">not run</span>'}</p></div>
   <div class="panel"><h2>Experiments</h2><div class="cards">${cards}</div></div>
   <div class="panel"><h2>Known differences from the original</h2><ul>${D.common_deviations.map(d=>`<li>${esc(d)}</li>`).join('')}</ul></div>`;
+}
+
+function exp8b(){
+  const s = D.exp8b, up = s.upstream_vllm, pct = x => x==null ? '–' : (100*x).toFixed(0)+'%';
+  const g = s.grader_check;
+  const rows = s.rows.map(r => `<tr><td>${r.quant}</td>
+    <td class="num">${s.gguf_bytes ? fmt(s.gguf_bytes['qwen3.5-0.8b-base-'+r.quant+'.gguf']/1e6) + ' MB' : '–'}</td>
+    <td class="num">${pct(r.base.acc)}</td><td class="num">${pct(r.base.cut_share)}</td>
+    <td class="num"><b>${pct(r.edited.acc)}</b></td><td class="num">${pct(r.edited.cut_share)}</td>
+    <td class="num">${r.paired_gain>=0?'+':''}${(100*r.paired_gain).toFixed(0)} ± ${(100*r.paired_se).toFixed(0)}</td>
+    <td class="num">${r.rescues} / ${r.losses}</td></tr>`).join('');
+  const max = 1;
+  const bars = s.rows.map(r => `<span class="small">${r.quant} base</span><div><div class="bar ppo" style="width:${100*r.base.acc/max}%"></div></div><span class="num small">${pct(r.base.acc)}</span>
+    <span class="small">${r.quant} edited</span><div><div class="bar astra" style="width:${100*r.edited.acc/max}%"></div></div><span class="num small">${pct(r.edited.acc)}</span>`).join('');
+  return `<div class="panel"><span class="tag">exp8b</span> <span class="tag">no LLM calls</span>
+  <h2 style="margin-top:8px">Does Astra's Qwen edit survive quantisation?</h2>
+  <p>In the paper's Experiment 8, Astra edited Qwen3.5-0.8B (131,072 weights in the MLPs of layers 15 and 19) to remove a direction that drives endless repetition in its thinking: MATH-500 went from 7.9% to 48.1%. Here we take that published edit, rebuild it bit-for-bit (every tensor hash checked against upstream's evaluated checkpoint), convert base and edited models to GGUF, quantise both to the same levels, and run the same ${s.subset.n} MATH-500 problems through llama.cpp ${esc(s.llama_cpp)} with the paper's sampling (thinking on, temperature 0.6, top-p 0.95, top-k 20, presence penalty 1.5, up to 32,768 tokens). Base and edited answers to a problem share a seed, so the comparison is paired.</p>
+  <p class="small muted">Questions: does the fix survive 8-, 4-, 3- and 2-bit quantisation, and does quantisation bring the looping back on its own?</p></div>
+  <div class="panel"><h2>Results (${s.subset.n} problems, 1 sample each)</h2>
+  <div class="tablewrap"><table><tr><th>Quant</th><th class="num">File</th><th class="num">Base acc.</th><th class="num">Base cut</th><th class="num">Edited acc.</th><th class="num">Edited cut</th><th class="num">Paired gain (pts)</th><th class="num">Rescued / lost</th></tr>${rows}
+  <tr><td class="who-astra">Paper (vLLM, bf16)</td><td></td><td class="num">${pct(up.unedited.acc_subset)}</td><td class="num">${pct(up.unedited.cut_share_all500)}*</td><td class="num">${pct(up.p50c.acc_subset)}</td><td class="num">${pct(up.p50c.cut_share_all500)}*</td><td></td><td></td></tr></table></div>
+  <p class="small muted">"Cut" = the answer ran into the 32,768-token limit (almost always looping). Paper row: accuracy on these same problems from upstream's per-problem results (mean of 4 samples); *cut share over all 500 problems.</p>
+  <div class="bars" style="margin-top:14px">${bars}</div></div>
+  <div class="panel"><h2>Instrument checks</h2><ul>
+  <li>Edit rebuild: every edited tensor's SHA-256 matches upstream's evaluated checkpoint.</li>
+  <li>Grader: upstream's grading code, imported unchanged (a stub for one module they didn't publish), re-graded their own saved sample texts: ${g ? `${g.unedited.agree}/${g.unedited.total} and ${g.p50c.agree}/${g.p50c.total} agree` : 'not run'}.</li>
+  <li>Engine: the F16 rows are the check that llama.cpp reproduces the paper's vLLM numbers; differences there are engine effects, not quantisation.</li></ul></div>`;
 }
 
 function validation(){
