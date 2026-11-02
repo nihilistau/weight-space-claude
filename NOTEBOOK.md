@@ -114,3 +114,27 @@ Runs `20261102T2226Z_opus-high_r1`, `..._2235Z_..._r2`, `..._2239Z_..._r3`, plus
 - **Confidence** stays 45-60% throughout, against Astra's 77-88%: consistently more hedged, yet not well calibrated either (the wrong answer was the most confident).
 - **Prediction check:** "3/3 every repeat": ✗ (one miss). "Square solid in ≥2 of 3 repeats": ✔ (2/3). "Circle mostly outline": ✔ (2/3). "Triangle coin flip": ✗, solid every time it was identified.
 - Lesson: the first run's 3/3 was real but not the whole story. One repeat in four found a failure that a single run would have hidden.
+
+## 2026-11-03: Exp 8b, Astra's Qwen edit vs quantisation (no LLM calls)
+
+**Question.** Astra's Exp 8 edit (run `p50c`: a loop direction removed from 64 output columns of the MLPs in layers 15 and 19 of Qwen3.5-0.8B) took MATH-500 from 7.9% to 48.1% by stopping endless repetition. (1) Does the fix survive 8/4/3/2-bit quantisation? (2) Does quantisation bring looping back by itself?
+
+**Design.**
+- Base: `Qwen/Qwen3.5-0.8B` @ `2fc0636` (the revision the edit was made on). Edited: rebuilt with upstream's own `apply_edit.rebuild`; every tensor's SHA-256 must match upstream's evaluated checkpoint.
+- Both converted to GGUF F16 with llama.cpp `b12060`'s converter, then quantised to Q8_0, Q4_K_M, Q3_K_M, Q2_K (no imatrix, so both models are quantised the same way).
+- 100 MATH-500 problems (seeded random subset), 1 sample each, upstream's `think35` sampling (thinking on, T 0.6, top-p 0.95, top-k 20, presence penalty 1.5, 32,768 tokens). llama.cpp's own extras switched off (min_p 0, repeat_penalty 1). Seed fixed per problem, so base and edited are **paired**. Upstream's chat template file.
+- Grading: upstream's `mathqa.py` imported unchanged (a stub for its unpublished `mcqa` import; math-verify timeouts off on Windows).
+
+**Instrument checks so far.**
+- Grader: re-grading upstream's own saved sample texts gives the same verdict on **400 / 400** (200 unedited, 200 edited).
+- Subset is representative: on these 100 problems upstream's vLLM runs scored 8.5% unedited and 49.8% edited (all 500: 7.9% / 48.1%).
+- Lesson logged: importing upstream code wrote `__pycache__` into the pinned submodule and dirtied it. Fixed by disabling bytecode for that import.
+
+**Deviations.** llama.cpp instead of vLLM; F16 instead of bf16 (the RTX 2060 has no bf16 support); 100 problems × 1 sample instead of 500 × 4 (SE ≈ 5 points per accuracy, smaller for the paired gain).
+
+**Predictions (Claude-the-assistant, before any generation):**
+- F16 reproduces the paper within noise: base ~5-15% with ~85-95% cut; edited ~40-55% with ~30-40% cut.
+- Q8_0 ≈ F16.
+- Q4_K_M: the edit survives; paired gain still ≥ 25 points.
+- Q3_K_M: base loops even more; the gain shrinks but stays positive.
+- Q2_K: both collapse (< 15%); the edited model still loops less, but there's not much maths left to rescue.
