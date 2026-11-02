@@ -1,0 +1,166 @@
+{
+ "run_id": "20261102T2047Z_opus-xhigh",
+ "experiment": "exp5",
+ "started": "2026-11-02T20:47:21Z",
+ "status": "scored",
+ "trial": false,
+ "note": "first Claude run",
+ "model_requested": "opus",
+ "effort": "xhigh",
+ "cases": [
+  "breakout",
+  "seaquest",
+  "asterix"
+ ],
+ "repo": {
+  "commit": "aab1beb427eeb4f861e32e76b26c6db7fb305e75",
+  "dirty": false,
+  "dirty_files": []
+ },
+ "upstream": {
+  "commit": "4d09ba6d6a7e891dd8063974dfe81b3d78e3494f",
+  "pinned": "4d09ba6d6a7e891dd8063974dfe81b3d78e3494f",
+  "matches_pin": true,
+  "dirty": false
+ },
+ "environment": {
+  "python": "3.11.9",
+  "platform": "Windows-10-10.0.26200-SP0",
+  "machine": "Beast",
+  "numpy": "2.4.6",
+  "minatar": "1.0.15"
+ },
+ "claude_cli": "2.1.300 (Claude Code)",
+ "deviations": [
+  "Model: Claude (via Claude Code `claude -p`) instead of gpt-6-astra (via Codex `codex exec`).",
+  "Reasoning effort uses Claude's level of the same name (high / xhigh); the two scales are not calibrated to each other.",
+  "Claude Code returns its own thinking (or a summary of it) instead of Codex's reasoning summaries.",
+  "Claude Code in -p mode adds an identity line and a short environment block (temp working folder, OS, date, model name) to the one-line system prompt; it also claims a shell tool exists. Found by `wsp smoke` (runs/_smoke/). No tool is actually offered or callable (audited per turn). Removing the block needs the raw API instead of the subscription."
+ ],
+ "turns": {
+  "breakout": {
+   "ok": true,
+   "tool_free": true,
+   "model": "claude-opus-5-5",
+   "wall_s": 1091.3,
+   "usage": {
+    "input_tokens": 4,
+    "cache_creation_input_tokens": 8310,
+    "cache_read_input_tokens": 0,
+    "output_tokens": 111917,
+    "output_tokens_details": {
+     "thinking_tokens": 108548
+    },
+    "server_tool_use": {
+     "web_search_requests": 0,
+     "web_fetch_requests": 0
+    },
+    "service_tier": "standard",
+    "cache_creation": {
+     "ephemeral_1h_input_tokens": 0,
+     "ephemeral_5m_input_tokens": 8310
+    },
+    "inference_geo": "global",
+    "iterations": [
+     {
+      "input_tokens": 2,
+      "output_tokens": 47917,
+      "cache_read_input_tokens": 0,
+      "cache_creation_input_tokens": 4186,
+      "cache_creation": {
+       "ephemeral_5m_input_tokens": 4186,
+       "ephemeral_1h_input_tokens": 0
+      },
+      "type": "message"
+     }
+    ],
+    "speed": "standard",
+    "fallback_credit": null
+   },
+   "prompt_sha256": "766ee251d59a7893ed86d5eaea99ddb847529ab2092afc69f90f55fb0a22e876"
+  },
+  "seaquest": {
+   "ok": true,
+   "tool_free": true,
+   "model": "claude-opus-5-5",
+   "wall_s": 1318.9,
+   "usage": {
+    "input_tokens": 8,
+    "cache_creation_input_tokens": 85792,
+    "cache_read_input_tokens": 0,
+    "output_tokens": 130304,
+    "output_tokens_details": {
+     "thinking_tokens": 125296
+    },
+    "server_tool_use": {
+     "web_search_requests": 0,
+     "web_fetch_requests": 0
+    },
+    "service_tier": "standard",
+    "cache_creation": {
+     "ephemeral_1h_input_tokens": 0,
+     "ephemeral_5m_input_tokens": 85792
+    },
+    "inference_geo": "global",
+    "iterations": [
+     {
+      "input_tokens": 4,
+      "output_tokens": 2304,
+      "cache_read_input_tokens": 0,
+      "cache_creation_input_tokens": 71328,
+      "cache_creation": {
+       "ephemeral_5m_input_tokens": 71328,
+       "ephemeral_1h_input_tokens": 0
+      },
+      "type": "message"
+     }
+    ],
+    "speed": "standard",
+    "fallback_credit": null
+   },
+   "prompt_sha256": "81e51857d7cffac29b12a389dee6ffcda2256a9e03f6cf91f4fd96e1eb855bf6"
+  },
+  "asterix": {
+   "ok": true,
+   "tool_free": true,
+   "model": "claude-opus-5-5",
+   "wall_s": 1138.8,
+   "usage": {
+    "input_tokens": 4,
+    "cache_creation_input_tokens": 8666,
+    "cache_read_input_tokens": 0,
+    "output_tokens": 117031,
+    "output_tokens_details": {
+     "thinking_tokens": 112222
+    },
+    "server_tool_use": {
+     "web_search_requests": 0,
+     "web_fetch_requests": 0
+    },
+    "service_tier": "standard",
+    "cache_creation": {
+     "ephemeral_1h_input_tokens": 0,
+     "ephemeral_5m_input_tokens": 8666
+    },
+    "inference_geo": "global",
+    "iterations": [
+     {
+      "input_tokens": 2,
+      "output_tokens": 53031,
+      "cache_read_input_tokens": 0,
+      "cache_creation_input_tokens": 4364,
+      "cache_creation": {
+       "ephemeral_5m_input_tokens": 4364,
+       "ephemeral_1h_input_tokens": 0
+      },
+      "type": "message"
+     }
+    ],
+    "speed": "standard",
+    "fallback_credit": null
+   },
+   "prompt_sha256": "9e8243d5545956e42b8bd130bceba6ed90ecb807768be3ae0f498f765197f5da"
+  }
+ },
+ "finished": "2026-11-02T21:46:30Z"
+}

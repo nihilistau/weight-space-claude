@@ -1,0 +1,34 @@
+{
+ "scored": "2026-11-02T20:41:46Z",
+ "scorer_commit": "aab1beb427eeb4f861e32e76b26c6db7fb305e75",
+ "cases": {
+  "breakout": {
+   "true": "breakout",
+   "guess": "breakout",
+   "correct": true,
+   "answer_line": "Breakout (Atari-style brick breaker on the 8×8 grid).",
+   "confidence": 80
+  },
+  "pong": {
+   "true": "pong",
+   "guess": "pong",
+   "correct": true,
+   "answer_line": "Pong (single‑agent, left paddle; a simplified Pong/squash on the grid).",
+   "confidence": 60
+  },
+  "pacman": {
+   "true": "pacman",
+   "guess": "pacman",
+   "correct": true,
+   "answer_line": "A Pac-Man-style maze game. The agent navigates a fixed symmetric maze (corner L-walls plus a central block) collecting pellets while avoiding roaming ghosts.",
+   "confidence": 72
+  },
+  "freeway": {
+   "true": "freeway",
+   "guess": "freeway",
+   "correct": true,
+   "answer_line": "A road-crossing game in the style of Freeway (Atari 2600) or Frogger. The agent crosses lanes of horizontally moving traffic to reach a goal row at the top.",
+   "confidence": 80
+  }
+ }
+}

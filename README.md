@@ -6,9 +6,9 @@ Asking **Claude** the questions from [*Sparks of Weight-Space Programming*](http
 
 | | Experiment | Status |
 |---|---|---|
-| 1 | Which game was this policy trained on? (weights as text, no tools) | see site |
-| 2 | What does this diffusion model generate? (no forward pass) | see site |
-| 5 | Write a MinAtar policy from scratch, one reply, no tools | see site |
+| 1 | Which game was this policy trained on? (weights as text, no tools) | Claude 4/4 · Astra 4/4 |
+| 2 | What does this diffusion model generate? (no forward pass) | Claude 3/3 · Astra 3/3 |
+| 5 | Write a MinAtar policy from scratch, one reply, no tools | Breakout 307 / Seaquest 24 / Asterix 33 (Astra 517 / 53 / 53; PPO-500M 25 / 89 / 55) |
 | 3, 4, 6-8 | Not started (6-8 need ~300M tokens each) | |
 
 ## Quick start (Windows / any OS)

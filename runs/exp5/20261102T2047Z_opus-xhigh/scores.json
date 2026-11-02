@@ -1,0 +1,51 @@
+{
+ "scored": "2026-11-02T21:47:14Z",
+ "scorer_commit": "aab1beb427eeb4f861e32e76b26c6db7fb305e75",
+ "cases": {
+  "breakout": {
+   "mean": 306.625,
+   "se": 7.94172017224822,
+   "episodes": 1000,
+   "max": 841.0,
+   "mean_length": 3740.336,
+   "seed": 0,
+   "max_steps": 10000,
+   "sticky_action_prob": 0.1,
+   "statements": 80,
+   "applied": 80,
+   "errors": 0,
+   "nonzero": 819,
+   "cut_off": false
+  },
+  "seaquest": {
+   "mean": 24.475,
+   "se": 0.7696621042735278,
+   "episodes": 1000,
+   "max": 131.0,
+   "mean_length": 693.839,
+   "seed": 0,
+   "max_steps": 10000,
+   "sticky_action_prob": 0.1,
+   "statements": 138,
+   "applied": 138,
+   "errors": 0,
+   "nonzero": 1372,
+   "cut_off": false
+  },
+  "asterix": {
+   "mean": 33.076,
+   "se": 0.8429904251276268,
+   "episodes": 1000,
+   "max": 175.0,
+   "mean_length": 649.636,
+   "seed": 0,
+   "max_steps": 10000,
+   "sticky_action_prob": 0.1,
+   "statements": 151,
+   "applied": 151,
+   "errors": 0,
+   "nonzero": 886,
+   "cut_off": false
+  }
+ }
+}

@@ -1,0 +1,208 @@
+{
+ "run_id": "20261102T2033Z_opus-high",
+ "experiment": "exp1",
+ "started": "2026-11-02T20:33:58Z",
+ "status": "scored",
+ "trial": false,
+ "note": "first Claude run",
+ "model_requested": "opus",
+ "effort": "high",
+ "cases": [
+  "breakout",
+  "pong",
+  "pacman",
+  "freeway"
+ ],
+ "repo": {
+  "commit": "aab1beb427eeb4f861e32e76b26c6db7fb305e75",
+  "dirty": false,
+  "dirty_files": []
+ },
+ "upstream": {
+  "commit": "4d09ba6d6a7e891dd8063974dfe81b3d78e3494f",
+  "pinned": "4d09ba6d6a7e891dd8063974dfe81b3d78e3494f",
+  "matches_pin": true,
+  "dirty": false
+ },
+ "environment": {
+  "python": "3.11.9",
+  "platform": "Windows-10-10.0.26200-SP0",
+  "machine": "Beast",
+  "numpy": "2.4.6",
+  "minatar": "1.0.15"
+ },
+ "claude_cli": "2.1.300 (Claude Code)",
+ "deviations": [
+  "Model: Claude (via Claude Code `claude -p`) instead of gpt-6-astra (via Codex `codex exec`).",
+  "Reasoning effort uses Claude's level of the same name (high / xhigh); the two scales are not calibrated to each other.",
+  "Claude Code returns its own thinking (or a summary of it) instead of Codex's reasoning summaries.",
+  "Claude Code in -p mode adds an identity line and a short environment block (temp working folder, OS, date, model name) to the one-line system prompt; it also claims a shell tool exists. Found by `wsp smoke` (runs/_smoke/). No tool is actually offered or callable (audited per turn). Removing the block needs the raw API instead of the subscription."
+ ],
+ "turns": {
+  "breakout": {
+   "ok": true,
+   "tool_free": true,
+   "model": "claude-opus-5-5",
+   "wall_s": 122.3,
+   "usage": {
+    "input_tokens": 2,
+    "cache_creation_input_tokens": 79499,
+    "cache_read_input_tokens": 0,
+    "output_tokens": 13860,
+    "output_tokens_details": {
+     "thinking_tokens": 12496
+    },
+    "server_tool_use": {
+     "web_search_requests": 0,
+     "web_fetch_requests": 0
+    },
+    "service_tier": "standard",
+    "cache_creation": {
+     "ephemeral_1h_input_tokens": 0,
+     "ephemeral_5m_input_tokens": 79499
+    },
+    "inference_geo": "global",
+    "iterations": [
+     {
+      "input_tokens": 2,
+      "output_tokens": 13860,
+      "cache_read_input_tokens": 0,
+      "cache_creation_input_tokens": 79499,
+      "cache_creation": {
+       "ephemeral_5m_input_tokens": 79499,
+       "ephemeral_1h_input_tokens": 0
+      },
+      "type": "message"
+     }
+    ],
+    "speed": "standard",
+    "fallback_credit": null
+   },
+   "prompt_sha256": "ba1d97cfcb585f0ccab628ed1ef983b230d897b97ae6ff10f2de6eac6d390b31"
+  },
+  "pong": {
+   "ok": true,
+   "tool_free": true,
+   "model": "claude-opus-5-5",
+   "wall_s": 62.2,
+   "usage": {
+    "input_tokens": 2,
+    "cache_creation_input_tokens": 79291,
+    "cache_read_input_tokens": 0,
+    "output_tokens": 6720,
+    "output_tokens_details": {
+     "thinking_tokens": 5309
+    },
+    "server_tool_use": {
+     "web_search_requests": 0,
+     "web_fetch_requests": 0
+    },
+    "service_tier": "standard",
+    "cache_creation": {
+     "ephemeral_1h_input_tokens": 0,
+     "ephemeral_5m_input_tokens": 79291
+    },
+    "inference_geo": "global",
+    "iterations": [
+     {
+      "input_tokens": 2,
+      "output_tokens": 6720,
+      "cache_read_input_tokens": 0,
+      "cache_creation_input_tokens": 79291,
+      "cache_creation": {
+       "ephemeral_5m_input_tokens": 79291,
+       "ephemeral_1h_input_tokens": 0
+      },
+      "type": "message"
+     }
+    ],
+    "speed": "standard",
+    "fallback_credit": null
+   },
+   "prompt_sha256": "1b143ac2f46ab7a0c4b3eb45bd2b9d82314c3b24e2d2412f80566946c935c5ba"
+  },
+  "pacman": {
+   "ok": true,
+   "tool_free": true,
+   "model": "claude-opus-5-5",
+   "wall_s": 97.8,
+   "usage": {
+    "input_tokens": 2,
+    "cache_creation_input_tokens": 79416,
+    "cache_read_input_tokens": 0,
+    "output_tokens": 11340,
+    "output_tokens_details": {
+     "thinking_tokens": 9620
+    },
+    "server_tool_use": {
+     "web_search_requests": 0,
+     "web_fetch_requests": 0
+    },
+    "service_tier": "standard",
+    "cache_creation": {
+     "ephemeral_1h_input_tokens": 0,
+     "ephemeral_5m_input_tokens": 79416
+    },
+    "inference_geo": "global",
+    "iterations": [
+     {
+      "input_tokens": 2,
+      "output_tokens": 11340,
+      "cache_read_input_tokens": 0,
+      "cache_creation_input_tokens": 79416,
+      "cache_creation": {
+       "ephemeral_5m_input_tokens": 79416,
+       "ephemeral_1h_input_tokens": 0
+      },
+      "type": "message"
+     }
+    ],
+    "speed": "standard",
+    "fallback_credit": null
+   },
+   "prompt_sha256": "1c75e66aab1e611bdb07a87d6f70e3d2ba3d149e58f259b5ad7a485661244acf"
+  },
+  "freeway": {
+   "ok": true,
+   "tool_free": true,
+   "model": "claude-opus-5-5",
+   "wall_s": 185.9,
+   "usage": {
+    "input_tokens": 2,
+    "cache_creation_input_tokens": 79279,
+    "cache_read_input_tokens": 0,
+    "output_tokens": 21141,
+    "output_tokens_details": {
+     "thinking_tokens": 19544
+    },
+    "server_tool_use": {
+     "web_search_requests": 0,
+     "web_fetch_requests": 0
+    },
+    "service_tier": "standard",
+    "cache_creation": {
+     "ephemeral_1h_input_tokens": 0,
+     "ephemeral_5m_input_tokens": 79279
+    },
+    "inference_geo": "global",
+    "iterations": [
+     {
+      "input_tokens": 2,
+      "output_tokens": 21141,
+      "cache_read_input_tokens": 0,
+      "cache_creation_input_tokens": 79279,
+      "cache_creation": {
+       "ephemeral_5m_input_tokens": 79279,
+       "ephemeral_1h_input_tokens": 0
+      },
+      "type": "message"
+     }
+    ],
+    "speed": "standard",
+    "fallback_credit": null
+   },
+   "prompt_sha256": "76f30db2c4591e340f4a8e1ca56abdfdf6aa9857e3220936ca178f86c29e6070"
+  }
+ },
+ "finished": "2026-11-02T20:41:46Z"
+}

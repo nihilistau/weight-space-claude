@@ -1,0 +1,72 @@
+{
+ "scored": "2026-11-02T20:47:20Z",
+ "scorer_commit": "aab1beb427eeb4f861e32e76b26c6db7fb305e75",
+ "cases": {
+  "circle": {
+   "true": "circle",
+   "guess": "circle",
+   "correct": true,
+   "answer_line": "Each image shows a single thin white circle outline (a ring, about one pixel wide) on a black background. It is roughly centred in the 12×12 frame, with a radius of about 3–5 pixels; a typical ring spans rows 1–10 and columns 1–10. The inside of the ring and the border are black, and the position an",
+   "confidence": 55,
+   "example": [
+    "............",
+    "....####....",
+    "..##....##..",
+    "..#......#..",
+    ".#........#.",
+    ".#........#.",
+    ".#........#.",
+    ".#........#.",
+    "..#......#..",
+    "..##....##..",
+    "....####....",
+    "............"
+   ],
+   "fill_ratio": 0.35
+  },
+  "square": {
+   "true": "square",
+   "guess": "square",
+   "correct": true,
+   "answer_line": "Each image is a single solid white axis-aligned rectangle on a black background.",
+   "confidence": 55,
+   "example": [
+    "............",
+    "............",
+    "............",
+    "..#######...",
+    "..#######...",
+    "..#######...",
+    "..#######...",
+    "..#######...",
+    "..#######...",
+    "............",
+    "............",
+    "............"
+   ],
+   "fill_ratio": 1.0
+  },
+  "triangle": {
+   "true": "triangle",
+   "guess": "triangle",
+   "correct": true,
+   "answer_line": "A single solid white triangle pointing upward on a black background.",
+   "confidence": 50,
+   "example": [
+    "............",
+    ".....##.....",
+    ".....##.....",
+    "....####....",
+    "....####....",
+    "...######...",
+    "...######...",
+    "..########..",
+    "..########..",
+    ".##########.",
+    "............",
+    "............"
+   ],
+   "fill_ratio": 1.0
+  }
+ }
+}

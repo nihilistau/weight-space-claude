@@ -38,3 +38,55 @@ Newest entries at the bottom. Write predictions **before** a run and commit them
 - Exp 5, Claude's Breakout score vs Astra's 517 and PPO's 25?
 
 ---
+
+## 2026-11-03: First Claude runs (Exps 1, 2, 5)
+
+Runs: `runs/exp1/20261102T2033Z_opus-high`, `runs/exp2/20261102T2041Z_opus-high`, `runs/exp5/20261102T2047Z_opus-xhigh`. Model served: `claude-opus-5-5` in every turn. All 10 turns passed the tool-free audit. Code at commit `aab1beb`. One attempt per case (n = 1, as upstream).
+
+### Exp 1: which game? **Claude 4/4, Astra 4/4**
+
+| Game | Claude | conf. | Astra conf. | Claude out / thinking tokens |
+|---|---|---|---|---|
+| Breakout | right | 80% | 99% | 13,860 / 12,496 |
+| Pong | right | 60% | 96% | 6,720 / 5,309 |
+| Pac-Man | right | 72% | 96% | 11,340 / 9,620 |
+| Freeway | right ("Freeway or Frogger") | 80% | 97% | 21,141 / 19,544 |
+
+Same accuracy, consistently lower stated confidence, and ~4-20x more output tokens than Astra (~1.7K). Whether Claude is better *calibrated* can't be told from 4 right answers: calibration needs wrong answers too.
+
+### Exp 2: which shape? **Claude 3/3, Astra 3/3, but the drawings differ**
+
+| Shape | Claude | conf. | Claude's drawing | Astra's drawing |
+|---|---|---|---|---|
+| circle | right | 55% | outline (fill 0.35) | outline (0.32) |
+| square | right | 55% | **solid** (fill 1.0) | outline (0.44) |
+| triangle | right | 50% | **solid** (fill 1.0) | outline (0.49) |
+
+The paper's notable failure was that Astra drew every shape as an outline while the models generate filled shapes. Claude drew two of three filled, matching what the models actually produce. With n = 1 this is a hint, not a finding: a repeat run (`wsp run exp2 --repeat 3`, ~$7 API-equivalent) would show whether it holds.
+
+### Exp 5: write a network from scratch (1,000 episodes, mean ± SE)
+
+| Game | PPO 100M | PPO 500M | Astra | **Claude** | Claude out / thinking tokens | time |
+|---|---|---|---|---|---|---|
+| Breakout | 15.8 | 25.3 | 517.4 | **306.6 ± 7.9** | 111,917 / 108,548 | 18 min |
+| Seaquest | 5.6 | 88.9 | 53.1 | **24.5 ± 0.8** | 130,304 / 125,296 | 22 min |
+| Asterix | 25.8 | 55.2 | 53.2 | **33.1 ± 0.8** | 117,031 / 112,222 | 19 min |
+
+- Every reply parsed with zero errors (80 / 138 / 151 statements). Claude beats PPO-100M on all three games and beats PPO-500M on Breakout by 12x, but trails Astra on all three.
+- Breakout: like Astra, Claude hand-wired a ball-landing predictor including the wall reflection. Best single episode 841 (Astra's best: 800); the mean is lower because more episodes end early.
+- Seaquest: the reply has no design description, only the edits block, although the prompt asked for both.
+- **Cost of thinking:** ~110-125K thinking tokens per reply against Astra's 17-26K. Claude at xhigh thinks ~5x longer here for a lower score.
+
+### Predictions vs outcome (Claude-the-assistant's)
+- Exp 1 "3 or 4": 4. ✔
+- Exp 2 "2 or 3; unsure about outlines": 3, and mostly *not* outlines. ✔ / surprise
+- Exp 5 Breakout "50-500, below Astra": 307. ✔. Seaquest "10-40": 24.5 ✔. Asterix "20-55": 33 ✔.
+
+### Harness findings
+- The output cap `CLAUDE_CODE_MAX_OUTPUT_TOKENS=64000` did **not** bind: replies reached 130K output tokens. Thinking appears to be budgeted separately. Harmless here (all replies ended with `end_turn`, nothing cut off), but the manifest's `max_output_tokens: 64000` is not the effective limit. Note for later: don't trust a setting you haven't seen take effect.
+- API-equivalent cost reported by Claude Code: **$12.67** for all 10 turns (Exp 1 $2.65, Exp 2 $2.33, Exp 5 $7.70). Run on the subscription.
+
+### Next ideas
+1. Repeats (`--repeat 3`) for Exp 2, to see whether the solid-vs-outline difference is stable.
+2. Exp 5 at `max` effort, or `high`, to see whether score tracks thinking.
+3. Exp 4 (fix the car policy: one reply, ~355K-token prompt): the last single-turn, no-tool experiment.
