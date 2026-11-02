@@ -20,7 +20,19 @@ Newest entries at the bottom. Write predictions **before** a run and commit them
 - Exp 5 edits reader rebuilds all three of Astra's networks bit-for-bit.
 - Exp 5 game scorer, on Astra's networks, 1,000 episodes: Asterix 53.8 ± 1.0 (published 53.2), Seaquest 55.8 ± 1.4 (53.1), Breakout 498.7 ± 7.8 (517.4). All within noise (|z| < 2).
 
-**Predictions** (fill in before the first real run):
+**Instrument checks re-run on this machine (beast, 8 workers)**: all 13 pass. Game scorer: Breakout 508.4 ± 7.7 (z 0.84), Seaquest 51.0 ± 1.3 (z 1.12), Asterix 53.6 ± 1.1 (z 0.29). Note the run-to-run spread: the same network scored 498.7 and 508.4 on two machines. That is what ±8 looks like.
+
+**Harness smoke test** (`runs/_smoke/20261102T2032Z`): served model `claude-opus-5-5`, no tools offered, no MCP servers, 17 × 23 = 391. *Finding:* the model reported more context than the one line we set: Claude Code prepends "You are a Claude agent, built on Anthropic's Claude Agent SDK." and appends an environment block (temp folder, Windows version, date, model name) that also says a PowerShell/Bash tool is available. It isn't (audit: tools offered = []), and Claude answered "Tools: none". Logged as a deviation rather than hidden. Upstream's Codex harness probably adds a similar block; their logs don't show the full system prompt. Lesson: **ask the subject what it sees**. The flags said "system prompt replaced"; the model's own report showed what was actually sent.
+
+**Predictions** (written before the first real run):
+
+*Claude-the-assistant's predictions (the one building this lab, predicting its own model family):*
+- Exp 1: 3 or 4 of 4. Breakout and Pong have distinctive input structure (paddle row/column); Pac-Man vs Freeway is where an error is likeliest.
+- Exp 2: 2 or 3 of 3. Unsure whether the drawings will be outlines too: reading "edge" detectors in W1 naturally suggests outlines.
+- Exp 5: Breakout well above PPO's 25 (a ball-tracking paddle is easy to hand-wire), likely 50-500, below Astra's 517. Seaquest lower than Astra's 53 (oxygen and diver management is hard to wire by hand), maybe 10-40. Asterix 20-55.
+- Main risk: Exp 5 replies that are too long or malformed for the edits reader.
+
+*Ray's predictions:* (add yours here; for this first batch, write them before looking at the results)
 - Exp 1, how many of 4 will Claude get right?
 - Exp 2, right shape for how many of 3? Will Claude also draw outlines instead of filled shapes?
 - Exp 5, Claude's Breakout score vs Astra's 517 and PPO's 25?

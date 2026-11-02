@@ -1,0 +1,77 @@
+{
+ "when": "2026-11-02T20:31:16Z",
+ "upstream": {
+  "commit": "4d09ba6d6a7e891dd8063974dfe81b3d78e3494f",
+  "pinned": "4d09ba6d6a7e891dd8063974dfe81b3d78e3494f",
+  "matches_pin": true,
+  "dirty": false
+ },
+ "checks": [
+  {
+   "name": "exp1/breakout scorer",
+   "passed": true,
+   "detail": "ours breakout 99% | upstream breakout 99%"
+  },
+  {
+   "name": "exp1/pong scorer",
+   "passed": true,
+   "detail": "ours pong 96% | upstream pong 96%"
+  },
+  {
+   "name": "exp1/pacman scorer",
+   "passed": true,
+   "detail": "ours pacman 96% | upstream pacman 96%"
+  },
+  {
+   "name": "exp1/freeway scorer",
+   "passed": true,
+   "detail": "ours freeway 97% | upstream freeway 97%"
+  },
+  {
+   "name": "exp2/circle scorer",
+   "passed": true,
+   "detail": "ours circle 84% | upstream circle 84%"
+  },
+  {
+   "name": "exp2/square scorer",
+   "passed": true,
+   "detail": "ours square 77% | upstream square 77%"
+  },
+  {
+   "name": "exp2/triangle scorer",
+   "passed": true,
+   "detail": "ours triangle 88% | upstream triangle 88%"
+  },
+  {
+   "name": "exp5/breakout edits reader",
+   "passed": true,
+   "detail": "92/92 statements, 815 nonzero, identical=True"
+  },
+  {
+   "name": "exp5/seaquest edits reader",
+   "passed": true,
+   "detail": "122/122 statements, 803 nonzero, identical=True"
+  },
+  {
+   "name": "exp5/asterix edits reader",
+   "passed": true,
+   "detail": "55/55 statements, 637 nonzero, identical=True"
+  },
+  {
+   "name": "exp5/breakout game scorer",
+   "passed": true,
+   "detail": "ours 508.4 ± 7.7 | upstream 517.4 ± 7.4 | z = 0.84"
+  },
+  {
+   "name": "exp5/seaquest game scorer",
+   "passed": true,
+   "detail": "ours 51.0 ± 1.3 | upstream 53.1 ± 1.4 | z = 1.12"
+  },
+  {
+   "name": "exp5/asterix game scorer",
+   "passed": true,
+   "detail": "ours 53.6 ± 1.1 | upstream 53.2 ± 1.0 | z = 0.29"
+  }
+ ],
+ "passed": true
+}

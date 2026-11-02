@@ -53,6 +53,9 @@ COMMON_DEVIATIONS = [
     "Model: Claude (via Claude Code `claude -p`) instead of gpt-6-astra (via Codex `codex exec`).",
     "Reasoning effort uses Claude's level of the same name (high / xhigh); the two scales are not calibrated to each other.",
     "Claude Code returns its own thinking (or a summary of it) instead of Codex's reasoning summaries.",
+    "Claude Code in -p mode adds an identity line and a short environment block (temp working folder, OS, date, model name) "
+    "to the one-line system prompt; it also claims a shell tool exists. Found by `wsp smoke` (runs/_smoke/). No tool is actually "
+    "offered or callable (audited per turn). Removing the block needs the raw API instead of the subscription.",
 ]
 
 
