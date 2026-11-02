@@ -70,7 +70,11 @@ def _upstream_code():
         stub = types.ModuleType("mcqa")
         stub.loop_signals = lambda text: {"repetitive_end": None}
         sys.modules["mcqa"] = stub
-    import apply_edit, mathqa, st_numpy  # noqa: E401
+    old, sys.dont_write_bytecode = sys.dont_write_bytecode, True   # never write __pycache__ into the pinned upstream
+    try:
+        import apply_edit, mathqa, st_numpy  # noqa: E401
+    finally:
+        sys.dont_write_bytecode = old
     if os.name == "nt":   # math-verify's timeouts use signal.alarm, which Windows lacks; upstream already runs without
         mathqa._timeouts = lambda: None   # them off the main thread, so this matches one of upstream's own modes
     return apply_edit, mathqa, st_numpy
