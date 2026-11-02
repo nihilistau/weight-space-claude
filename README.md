@@ -9,7 +9,7 @@ Asking **Claude Opus 5.5** (`claude-opus-5-5`, via Claude Code) the questions fr
 | | Experiment | Claude Opus 5.5 vs GPT-6 Astra |
 |---|---|---|
 | 1 | Which game was this policy trained on? (weights as text, no tools) | Opus 5.5 4/4 · Astra 4/4 |
-| 2 | What does this diffusion model generate? (no forward pass) | Opus 5.5 3/3 · Astra 3/3 (see site for repeats) |
+| 2 | What does this diffusion model generate? (no forward pass) | Opus 5.5 11/12 over 4 runs, drew filled shapes 7/11 · Astra 3/3 (n=1), outlines 3/3 |
 | 5 | Write a MinAtar policy from scratch, one reply, no tools | Opus 5.5: Breakout 307 / Seaquest 24 / Asterix 33 (Astra 517 / 53 / 53; PPO-500M 25 / 89 / 55) |
 | 3, 4, 6-8 | Not started (6-8 need ~300M tokens each) | |
 

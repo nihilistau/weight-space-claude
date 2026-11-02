@@ -1,0 +1,72 @@
+{
+ "scored": "2026-11-02T22:50:08Z",
+ "scorer_commit": "e832c258a1dc6655f445b8ebdcca694a05daa406",
+ "cases": {
+  "circle": {
+   "true": "circle",
+   "guess": "circle",
+   "correct": true,
+   "answer_line": "Each image is a single solid white filled circle on a black background. Its radius varies from about 1.5 to 5 pixels, so it ranges from roughly 3×3 to about 10×10. Its centre varies, but it always stays inside rows 1–10 and columns 1–10. The outermost ring of pixels (row 0, row 11, column 0, column ",
+   "confidence": 45,
+   "example": [
+    "............",
+    "............",
+    ".....###....",
+    "....#####...",
+    "...#######..",
+    "...#######..",
+    "...#######..",
+    "....#####...",
+    ".....###....",
+    "............",
+    "............",
+    "............"
+   ],
+   "fill_ratio": 1.0
+  },
+  "square": {
+   "true": "square",
+   "guess": "square",
+   "correct": true,
+   "answer_line": "One solid white, axis-aligned rectangle (sometimes a square) on a black background. Its position and size are random inside the 10×10 interior. The outermost ring of pixels (rows/columns 0 and 11) almost always stays black. Rectangles are fairly large, typically 3 to 10 pixels per side, and often sp",
+   "confidence": 45,
+   "example": [
+    "............",
+    "............",
+    "............",
+    "..#######...",
+    "..#######...",
+    "..#######...",
+    "..#######...",
+    "..#######...",
+    "..#######...",
+    "............",
+    "............",
+    "............"
+   ],
+   "fill_ratio": 1.0
+  },
+  "triangle": {
+   "true": "triangle",
+   "guess": "circle",
+   "correct": false,
+   "answer_line": "Handwritten-style white digit \"2\"s on a black background. Each digit fills roughly rows 1–10 and columns 2–10:",
+   "confidence": 60,
+   "example": [
+    "............",
+    "....####....",
+    "...##..##...",
+    "...#....##..",
+    "........##..",
+    ".......##...",
+    "......##....",
+    ".....##.....",
+    "....##......",
+    "...##.......",
+    "..########..",
+    "............"
+   ],
+   "fill_ratio": 0.838
+  }
+ }
+}

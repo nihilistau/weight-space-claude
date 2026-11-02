@@ -96,3 +96,21 @@ The paper's notable failure was that Astra drew every shape as an outline while 
 - README and site now name the model explicitly (**Claude Opus 5.5**, `claude-opus-5-5`), taken from the served-model field in each run's event stream rather than typed by hand, so a future Sonnet/Fable run labels itself. Experiment pages get an "All runs" table.
 - **Exp 2 × 3 repeats** (same prompts, fresh conversations, effort `high`), to check whether the first run's solid square and triangle hold up or were luck.
   *Prediction (Claude-the-assistant):* shape identification stays 3/3 in every repeat. Drawings: the square drawn solid in at least 2 of 3; the circle mostly an outline; the triangle a coin flip.
+
+### Exp 2 repeats: results
+
+Runs `20261102T2226Z_opus-high_r1`, `..._2235Z_..._r2`, `..._2239Z_..._r3`, plus the first run `20261102T2041Z`. Claude Opus 5.5, effort `high`, all tool-free.
+
+| Run | circle | square | triangle |
+|---|---|---|---|
+| first | ✓ 55% · outline (0.35) | ✓ 55% · **solid** | ✓ 50% · **solid** |
+| r1 | ✓ 50% · outline (0.35) | ✓ 55% · **solid** | ✓ 45% · **solid** |
+| r2 | ✓ 55% · outline (0.39) | ✓ 55% · outline (0.49) | ✓ 45% · **solid** |
+| r3 | ✓ 45% · **solid** | ✓ 45% · **solid** | ✗ 60% · "digit 2" |
+| *Astra (paper, n=1)* | ✓ 84% · outline | ✓ 77% · outline | ✓ 88% · outline |
+
+- **Identification: 11 / 12.** The miss (r3, triangle model): Claude answered *handwritten white digit "2"s*, described as a rounded top arc, a diagonal stroke to the lower left and a flat base. The scorer's `guess` field says "circle" because its upstream-style keyword list counts "round" as circle. The case is wrong either way; the label is a scorer artefact, left unchanged because the scorer is the validated one. Worth noticing that this wrong answer came with Claude's **highest** confidence on that model (60%).
+- **Drawings: filled 7 of 11 correct answers** (square 3/4, triangle 3/3, circle 1/4), against Astra's 0 of 3. The difference from Astra holds up across repeats. The circle is the shape Claude most often draws as a ring.
+- **Confidence** stays 45-60% throughout, against Astra's 77-88%: consistently more hedged, yet not well calibrated either (the wrong answer was the most confident).
+- **Prediction check:** "3/3 every repeat": ✗ (one miss). "Square solid in ≥2 of 3 repeats": ✔ (2/3). "Circle mostly outline": ✔ (2/3). "Triangle coin flip": ✗, solid every time it was identified.
+- Lesson: the first run's 3/3 was real but not the whole story. One repeat in four found a failure that a single run would have hidden.

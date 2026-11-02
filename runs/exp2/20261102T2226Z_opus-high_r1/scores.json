@@ -1,0 +1,72 @@
+{
+ "scored": "2026-11-02T22:35:11Z",
+ "scorer_commit": "e832c258a1dc6655f445b8ebdcca694a05daa406",
+ "cases": {
+  "circle": {
+   "true": "circle",
+   "guess": "circle",
+   "correct": true,
+   "answer_line": "A single white circle outline on a black background. The stroke is about 1 px, thickening to 2 px at the diagonals. It is roughly 8–10 px across (radius about 3.5–5), centred near the middle of the image (around row 5.5, col 5.5–6) with some jitter in position and size. It never touches the outer bo",
+   "confidence": 50,
+   "example": [
+    "............",
+    "....####....",
+    "..##....##..",
+    "..#......#..",
+    ".#........#.",
+    ".#........#.",
+    ".#........#.",
+    ".#........#.",
+    "..#......#..",
+    "..##....##..",
+    "....####....",
+    "............"
+   ],
+   "fill_ratio": 0.35
+  },
+  "square": {
+   "true": "square",
+   "guess": "square",
+   "correct": true,
+   "answer_line": "Each image is a single solid white, axis-aligned rectangle on a black background. Its size and position vary, with sides roughly 3–10 pixels long. Its edges fall anywhere between row/column 1 and 10, and it usually leaves at least a one-pixel black margin at the image border.",
+   "confidence": 55,
+   "example": [
+    "............",
+    "............",
+    "............",
+    "...#######..",
+    "...#######..",
+    "...#######..",
+    "...#######..",
+    "...#######..",
+    "...#######..",
+    "............",
+    "............",
+    "............"
+   ],
+   "fill_ratio": 1.0
+  },
+  "triangle": {
+   "true": "triangle",
+   "guess": "triangle",
+   "correct": true,
+   "answer_line": "A single solid white triangle pointing up on a black background.",
+   "confidence": 45,
+   "example": [
+    "............",
+    "............",
+    ".....#......",
+    "....###.....",
+    "....###.....",
+    "...#####....",
+    "...#####....",
+    "..#######...",
+    "..#######...",
+    ".#########..",
+    "............",
+    "............"
+   ],
+   "fill_ratio": 1.0
+  }
+ }
+}
