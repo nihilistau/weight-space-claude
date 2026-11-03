@@ -167,3 +167,8 @@ Runs `20261102T2226Z_opus-high_r1`, `..._2235Z_..._r2`, `..._2239Z_..._r3`, plus
 - The penalty window alone moves the edit's measured gain from +19 to +35 points: the same weights, the same problems, the same seeds. The edited model sits right at the edge where the sampler decides whether it escapes a loop. Base answers loop regardless (cut answers: 97% of their tail 8-grams repeat).
 - Edited answers that still hit the limit are mostly not verbatim loops (tail repeat 41%): long, circling reasoning. The median correct edited answer is 16.2K tokens. It thinks for a long time, as the paper noted (9.2K median on practice problems).
 - Prediction check: "F16 reproduces the paper within noise" ✔ (under the correct protocol).
+
+### 2026-11-04: Exp 8b paused
+
+Paused at Ray's request. Done under `penall`: F16 pair (published). In progress: base-Q2_K 82/100 (0 correct, 67 cut so far, unpublished). Not started: p50c-Q2_K, Q4_K_M, Q3_K_M, Q8_0.
+To resume (finished answers are kept and skipped): `$env:EXP8B_PROTOCOL='penall'; uv run --group exp8 wsp 8b eval all`, then `uv run --group exp8 wsp 8b report` and `uv run wsp site`.
