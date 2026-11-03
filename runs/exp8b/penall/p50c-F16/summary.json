@@ -1,0 +1,9 @@
+{
+ "condition": "p50c-F16",
+ "n": 100,
+ "acc": 0.46,
+ "cut_share": 0.42,
+ "mean_tokens": 23662.7,
+ "closed_thinking": 0.72,
+ "loop_tail_dup8_cut": 0.4058571428571429
+}

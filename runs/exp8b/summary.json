@@ -1,5 +1,5 @@
 {
- "built": "2026-11-03T09:24:32Z",
+ "built": "2026-11-03T17:14:29Z",
  "subset": {
   "seed": 8,
   "n": 100,
@@ -146,7 +146,34 @@
   "qwen3.5-0.8b-p50c-Q4_K_M.gguf": 541903936,
   "qwen3.5-0.8b-p50c-Q8_0.gguf": 833592384
  },
- "rows": [],
+ "rows": [
+  {
+   "quant": "F16",
+   "n": 100,
+   "base": {
+    "condition": "base-F16",
+    "n": 100,
+    "acc": 0.11,
+    "cut_share": 0.9,
+    "mean_tokens": 30117.47,
+    "closed_thinking": 0.1,
+    "loop_tail_dup8_cut": 0.9673888888888891
+   },
+   "edited": {
+    "condition": "p50c-F16",
+    "n": 100,
+    "acc": 0.46,
+    "cut_share": 0.42,
+    "mean_tokens": 23662.7,
+    "closed_thinking": 0.72,
+    "loop_tail_dup8_cut": 0.4058571428571429
+   },
+   "paired_gain": 0.35,
+   "paired_se": 0.047937248544110196,
+   "rescues": 35,
+   "losses": 0
+  }
+ ],
  "variants": {
   "pen64": {
    "sampling": {

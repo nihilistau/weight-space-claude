@@ -153,3 +153,17 @@ Runs `20261102T2226Z_opus-high_r1`, `..._2235Z_..._r2`, `..._2239Z_..._r3`, plus
 - **Prediction check:** "F16 reproduces the paper within noise" was ✔ for base and ✗ for edited (29% against a predicted 40-55%).
 - **What changed:** protocols are now named. `pen64` = the run above, kept as a labelled variant (it's a real finding: a sampler default moves the edit's measured gain by perhaps 20 points). `penall` = presence penalty over the whole answer (`repeat_last_n` 34,816, confirmed on the running server's slots). All runs from here use `penall`, starting again with the F16 pair.
 - **Lesson:** "same sampling settings" means *every* parameter the two engines interpret, not just the ones you name. Engines differ in defaults you never set.
+
+### Exp 8b, F16 pair (protocol `penall`): the check passes
+
+| F16, 100 problems | accuracy | cut at 32,768 | paired gain |
+|---|---|---|---|
+| base, `penall` | **11%** | **90%** | |
+| edited (Astra p50c), `penall` | **46%** | **42%** | **+35 ± 5 pts** |
+| *paper, same problems (vLLM)* | *8.5% / 49.8%* | *93% / 33% (all 500)* | *+41* |
+| *variant `pen64` (penalty over last 64 tokens only)* | *10% / 29%* | *91% / 65%* | *+19 ± 4* |
+
+- With the presence penalty over the whole answer (as vLLM does it), llama.cpp at F16 reproduces the paper within noise: 46% vs 49.8% edited, 11% vs 8.5% base. **The instrument check now passes**, so the quantised rows that follow measure quantisation, not the engine.
+- The penalty window alone moves the edit's measured gain from +19 to +35 points: the same weights, the same problems, the same seeds. The edited model sits right at the edge where the sampler decides whether it escapes a loop. Base answers loop regardless (cut answers: 97% of their tail 8-grams repeat).
+- Edited answers that still hit the limit are mostly not verbatim loops (tail repeat 41%): long, circling reasoning. The median correct edited answer is 16.2K tokens. It thinks for a long time, as the paper noted (9.2K median on practice problems).
+- Prediction check: "F16 reproduces the paper within noise" ✔ (under the correct protocol).
