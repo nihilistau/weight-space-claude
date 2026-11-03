@@ -138,3 +138,18 @@ Runs `20261102T2226Z_opus-high_r1`, `..._2235Z_..._r2`, `..._2239Z_..._r3`, plus
 - Q4_K_M: the edit survives; paired gain still ≥ 25 points.
 - Q3_K_M: base loops even more; the gain shrinks but stays positive.
 - Q2_K: both collapse (< 15%); the edited model still loops less, but there's not much maths left to rescue.
+
+### Exp 8b, F16 pair (first protocol): the check partly failed, and why
+
+| F16, 100 problems | accuracy | cut at 32,768 | notes |
+|---|---|---|---|
+| base | **10%** | **91%** | cut answers are loops: 88% of their tail 8-grams repeat |
+| edited (Astra p50c) | **29%** | **65%** | cut answers mostly *not* verbatim loops (tail repeat 31%); median correct answer 12.3K tokens |
+| paired gain | **+19 ± 4 pts** | | 21 rescued, 2 lost |
+| *paper, same problems (vLLM, bf16)* | *8.5%* | *93% (all 500)* | edited: *49.8%*, *33% cut (all 500)* |
+
+- **Base matches the paper; edited doesn't.** The instrument check is half passed, so before spending 20 more GPU-hours on quantised models I looked for a cause in our own setup.
+- **Cause found (most likely):** llama.cpp applies the presence penalty only over the **last 64 tokens** (`--repeat-last-n` default 64); vLLM applies it to **every generated token**. I passed the presence penalty but not the window. For an experiment about loops this is exactly the wrong detail to miss: a repetition cycle longer than 64 tokens escapes a 64-token penalty. The base model loops either way, so it still matched; the edited model sits near the edge, where the sampler decides.
+- **Prediction check:** "F16 reproduces the paper within noise" was ✔ for base and ✗ for edited (29% against a predicted 40-55%).
+- **What changed:** protocols are now named. `pen64` = the run above, kept as a labelled variant (it's a real finding: a sampler default moves the edit's measured gain by perhaps 20 points). `penall` = presence penalty over the whole answer (`repeat_last_n` 34,816, confirmed on the running server's slots). All runs from here use `penall`, starting again with the F16 pair.
+- **Lesson:** "same sampling settings" means *every* parameter the two engines interpret, not just the ones you name. Engines differ in defaults you never set.

@@ -49,8 +49,18 @@ N_PROBLEMS = 100
 SUBSET_SEED = 8
 # upstream protocol think35 (exp8 README / code/evaluate.py SAMPLING_THINK35), plus llama.cpp's own defaults switched
 # off so the sampler matches vLLM's (min_p 0.05 and repeat_penalty are llama.cpp defaults vLLM doesn't apply)
-SAMPLING = {"temperature": 0.6, "top_p": 0.95, "top_k": 20, "presence_penalty": 1.5, "min_p": 0.0,
+_BASE_SAMPLING = {"temperature": 0.6, "top_p": 0.95, "top_k": 20, "presence_penalty": 1.5, "min_p": 0.0,
             "repeat_penalty": 1.0, "typical_p": 1.0, "n_predict": 32768}
+# Sampler protocols. "penall" is the faithful one: vLLM (upstream) applies the presence penalty to every generated
+# token, llama.cpp by default only to the last 64 (--repeat-last-n). For a study of loops that matters: a cycle longer
+# than 64 tokens escapes a 64-token penalty. The first F16 pair was run with the llama.cpp default ("pen64", kept as a
+# labelled variant); everything from then on uses "penall".
+PROTOCOLS = {
+    "pen64": {**_BASE_SAMPLING, "repeat_last_n": 64},
+    "penall": {**_BASE_SAMPLING, "repeat_last_n": 32768 + 2048},   # covers prompt + the whole 32,768-token answer
+}
+PROTOCOL = os.environ.get("EXP8B_PROTOCOL", "penall")
+SAMPLING = PROTOCOLS[PROTOCOL]
 # llama-server samples all of its slots on one CPU thread; with a 248K-token vocabulary that thread, not the GPU, is the
 # limit (measured: ~320 tok/s, GPU 38% busy, one core pinned). So we run several small servers instead of one big one.
 SERVERS = 3
@@ -227,9 +237,13 @@ def _server(gguf: Path, port: int):
     raise RuntimeError("llama-server did not become ready")
 
 
-def gen_file(cond: str) -> Path:
+def gen_file(cond: str, protocol: str | None = None) -> Path:
     """Full generations (large, plain) live in work/; a gzipped copy is kept in runs/ as the record."""
-    return WORK / "exp8b" / cond / "generations.jsonl"
+    return WORK / "exp8b" / (protocol or PROTOCOL) / cond / "generations.jsonl"
+
+
+def cond_dir(cond: str, protocol: str | None = None) -> Path:
+    return OUT / (protocol or PROTOCOL) / cond
 
 
 def tail_dup8(text: str, window: int = 1000) -> float:
@@ -255,7 +269,7 @@ def eval_condition(cond: str, limit: int | None = None):
     template = (UP8 / "base_model" / "Qwen3.5-0.8B-text" / "chat_template.jinja").read_text(encoding="utf-8")  # the one upstream used
     rows = {json.loads(l)["id"]: json.loads(l) for l in (WORK / "data" / "math500.jsonl").read_text(encoding="utf-8").splitlines()}
     ids = subset_ids()[:limit] if limit else subset_ids()
-    odir = OUT / cond
+    odir = cond_dir(cond)
     odir.mkdir(parents=True, exist_ok=True)
     gen_path = gen_file(cond)
     gen_path.parent.mkdir(parents=True, exist_ok=True)
@@ -313,14 +327,14 @@ def eval_condition(cond: str, limit: int | None = None):
             for proc, _ in servers:
                 proc.terminate()
                 proc.wait(timeout=60)
-        _j(odir / "engine.json", {"llama_cpp": LLAMA_TAG, "cmd": [Path(cmd[0]).name, *cmd[1:]], "sampling": SAMPLING,
+        _j(odir / "engine.json", {"llama_cpp": LLAMA_TAG, "cmd": [Path(cmd[0]).name, *cmd[1:]], "protocol": PROTOCOL, "sampling": SAMPLING,
                                   "servers": SERVERS, "slots_per_server": SLOTS, "seconds": round(time.time() - t0), "gguf": gguf.name,
                                   "gguf_sha256_head": hashlib.sha256(gguf.read_bytes()[:1 << 24]).hexdigest()})
     summarize(cond)
 
 
-def summarize(cond: str):
-    rs = [json.loads(l) for l in gen_file(cond).read_text(encoding="utf-8").splitlines()]
+def summarize(cond: str, protocol: str | None = None):
+    rs = [json.loads(l) for l in gen_file(cond, protocol).read_text(encoding="utf-8").splitlines()]
     ids = set(subset_ids())
     rs = [r for r in rs if r["id"] in ids]
     n = len(rs)
@@ -328,10 +342,10 @@ def summarize(cond: str):
          "mean_tokens": sum(r["tokens"] or 0 for r in rs) / n,
          "closed_thinking": sum(r["closed_thinking"] for r in rs) / n,
          "loop_tail_dup8_cut": (sum(r["tail_dup8"] for r in rs if r["cut"]) / max(1, sum(r["cut"] for r in rs)))}
-    _j(OUT / cond / "summary.json", s)
+    _j(cond_dir(cond, protocol) / "summary.json", s)
     # the texts are the raw evidence but large: keep them gzipped in git, the plain file only in work/
-    with gzip.open(OUT / cond / "generations.jsonl.gz", "wt", encoding="utf-8") as f:
-        f.write(gen_file(cond).read_text(encoding="utf-8"))
+    with gzip.open(cond_dir(cond, protocol) / "generations.jsonl.gz", "wt", encoding="utf-8") as f:
+        f.write(gen_file(cond, protocol).read_text(encoding="utf-8"))
     print(f"  [{cond}] acc {s['acc']:.1%}  cut {s['cut_share']:.1%}  mean tokens {s['mean_tokens']:.0f}", flush=True)
     return s
 
@@ -353,34 +367,44 @@ def upstream_on_subset():
     return out
 
 
-def report():
+def rows_for(protocol: str):
     import math
     rows = []
     for q in QUANTS:
-        b, e = gen_file(f"base-{q}"), gen_file(f"p50c-{q}")
+        b, e = gen_file(f"base-{q}", protocol), gen_file(f"p50c-{q}", protocol)
         if not (b.exists() and e.exists()):
             continue
         rb = {json.loads(l)["id"]: json.loads(l) for l in b.read_text(encoding="utf-8").splitlines()}
         re_ = {json.loads(l)["id"]: json.loads(l) for l in e.read_text(encoding="utf-8").splitlines()}
         ids = [i for i in subset_ids() if i in rb and i in re_]
+        if len(ids) < len(subset_ids()):
+            continue                                   # report complete pairs only
         d = [int(re_[i]["correct"]) - int(rb[i]["correct"]) for i in ids]
         n = len(d)
         mean = sum(d) / n
         se = math.sqrt(sum((x - mean) ** 2 for x in d) / (n - 1) / n) if n > 1 else 0
         rows.append({"quant": q, "n": n,
-                     "base": summarize(f"base-{q}"), "edited": summarize(f"p50c-{q}"),
+                     "base": summarize(f"base-{q}", protocol), "edited": summarize(f"p50c-{q}", protocol),
                      "paired_gain": mean, "paired_se": se,
                      "rescues": sum(x == 1 for x in d), "losses": sum(x == -1 for x in d)})
+    return rows
+
+
+def report():
+    rows = rows_for(PROTOCOL)
+    variants = {p: {"sampling": PROTOCOLS[p], "rows": rows_for(p)} for p in PROTOCOLS if p != PROTOCOL}
     build = json.loads((OUT / "build.json").read_text()) if (OUT / "build.json").exists() else {}
     _j(OUT / "summary.json", {"built": P.now(), "subset": json.loads((OUT / "subset.json").read_text()),
-                              "sampling": SAMPLING, "llama_cpp": LLAMA_TAG, "upstream_vllm": upstream_on_subset(),
-                              "gguf_bytes": build.get("gguf_bytes"), "rows": rows,
+                              "protocol": PROTOCOL, "sampling": SAMPLING, "llama_cpp": LLAMA_TAG,
+                              "upstream_vllm": upstream_on_subset(), "gguf_bytes": build.get("gguf_bytes"),
+                              "rows": rows, "variants": variants,
                               "grader_check": json.loads((OUT / "grader_check.json").read_text())
                               if (OUT / "grader_check.json").exists() else None})
-    for r in rows:
-        print(f"  {r['quant']:7} base {r['base']['acc']:.0%} (cut {r['base']['cut_share']:.0%})  "
-              f"edited {r['edited']['acc']:.0%} (cut {r['edited']['cut_share']:.0%})  "
-              f"gain {r['paired_gain']:+.0%} ± {r['paired_se']:.0%}")
+    for name, rs in [(PROTOCOL, rows), *[(k, v["rows"]) for k, v in variants.items()]]:
+        for r in rs:
+            print(f"  [{name}] {r['quant']:7} base {r['base']['acc']:.0%} (cut {r['base']['cut_share']:.0%})  "
+                  f"edited {r['edited']['acc']:.0%} (cut {r['edited']['cut_share']:.0%})  "
+                  f"gain {r['paired_gain']:+.0%} ± {r['paired_se']:.0%}")
 
 
 def main(args):

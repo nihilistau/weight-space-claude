@@ -6,3 +6,4 @@ __pycache__/
 validation/_*
 *.log.tmp
 work/
+runs/exp8b/**/server_*.log

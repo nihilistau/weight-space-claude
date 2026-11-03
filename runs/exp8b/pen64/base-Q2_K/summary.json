@@ -1,0 +1,9 @@
+{
+ "condition": "base-Q2_K",
+ "n": 2,
+ "acc": 0.0,
+ "cut_share": 0.0,
+ "mean_tokens": 8203.5,
+ "closed_thinking": 1.0,
+ "loop_tail_dup8_cut": 0.0
+}

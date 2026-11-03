@@ -1,0 +1,36 @@
+{
+ "llama_cpp": "b12060",
+ "cmd": [
+  "llama-server.exe",
+  "-m",
+  "D:\\Files\\Projects\\weight-space-claude\\work\\gguf\\qwen3.5-0.8b-base-Q2_K.gguf",
+  "-ngl",
+  "99",
+  "-c",
+  "135168",
+  "-np",
+  "4",
+  "--port",
+  "8091",
+  "--no-webui",
+  "-fa",
+  "on",
+  "--seed",
+  "0"
+ ],
+ "sampling": {
+  "temperature": 0.6,
+  "top_p": 0.95,
+  "top_k": 20,
+  "presence_penalty": 1.5,
+  "min_p": 0.0,
+  "repeat_penalty": 1.0,
+  "typical_p": 1.0,
+  "n_predict": 32768
+ },
+ "servers": 3,
+ "slots_per_server": 4,
+ "seconds": 640,
+ "gguf": "qwen3.5-0.8b-base-Q2_K.gguf",
+ "gguf_sha256_head": "fad764e91087a5f6c8e853652847aaff427c9232c188b8e9455e9409e5cebca8"
+}

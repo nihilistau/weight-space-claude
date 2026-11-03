@@ -1,0 +1,9 @@
+{
+ "condition": "base-F16",
+ "n": 100,
+ "acc": 0.1,
+ "cut_share": 0.91,
+ "mean_tokens": 30819.63,
+ "closed_thinking": 0.09,
+ "loop_tail_dup8_cut": 0.9003846153846154
+}
