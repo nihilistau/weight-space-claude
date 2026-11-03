@@ -43,6 +43,8 @@ OUT = P.ROOT / "runs" / "exp8b"
 
 EDITS = ["p50c"]                                  # upstream runs whose edit we test
 QUANTS = ["F16", "Q8_0", "Q4_K_M", "Q3_K_M", "Q2_K"]
+# evaluation order: the check against the paper first, then the most informative levels (~4-5 h per level on a 2060)
+EVAL_ORDER = ["F16", "Q2_K", "Q4_K_M", "Q3_K_M", "Q8_0"]
 N_PROBLEMS = 100
 SUBSET_SEED = 8
 # upstream protocol think35 (exp8 README / code/evaluate.py SAMPLING_THINK35), plus llama.cpp's own defaults switched
@@ -390,7 +392,7 @@ def main(args):
     elif cmd == "check-grader":
         sys.exit(0 if check_grader() else 1)
     elif cmd == "eval":
-        conds = [f"{m}-{q}" for q in QUANTS for m in ("base", *EDITS)] if args[1:] == ["all"] else \
+        conds = [f"{m}-{q}" for q in EVAL_ORDER for m in ("base", *EDITS)] if args[1:] == ["all"] else \
             [a for a in args[1:] if not a.startswith("--")]
         limit = next((int(a.split("=")[1]) for a in args if a.startswith("--limit=")), None)
         for c in conds:
