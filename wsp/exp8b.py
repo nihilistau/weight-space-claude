@@ -49,7 +49,11 @@ SUBSET_SEED = 8
 # off so the sampler matches vLLM's (min_p 0.05 and repeat_penalty are llama.cpp defaults vLLM doesn't apply)
 SAMPLING = {"temperature": 0.6, "top_p": 0.95, "top_k": 20, "presence_penalty": 1.5, "min_p": 0.0,
             "repeat_penalty": 1.0, "typical_p": 1.0, "n_predict": 32768}
-PARALLEL = 12
+# llama-server samples all of its slots on one CPU thread; with a 248K-token vocabulary that thread, not the GPU, is the
+# limit (measured: ~320 tok/s, GPU 38% busy, one core pinned). So we run several small servers instead of one big one.
+SERVERS = 3
+SLOTS = 4
+PARALLEL = SERVERS * SLOTS
 CTX_PER_SLOT = 32768 + 1024
 PORT = 8091
 
@@ -201,16 +205,16 @@ def check_grader():
 
 
 # ------------------------------------------------------------------------------------------------ eval
-def _server(gguf: Path):
+def _server(gguf: Path, port: int):
     exe = LLAMA_BIN / ("llama-server.exe" if os.name == "nt" else "llama-server")
-    cmd = [str(exe), "-m", str(gguf), "-ngl", "99", "-c", str(PARALLEL * CTX_PER_SLOT), "-np", str(PARALLEL),
-           "--port", str(PORT), "--no-webui", "-fa", "on", "--seed", "0"]
-    log = open(OUT / "server.log", "a", encoding="utf-8")
+    cmd = [str(exe), "-m", str(gguf), "-ngl", "99", "-c", str(SLOTS * CTX_PER_SLOT), "-np", str(SLOTS),
+           "--port", str(port), "--no-webui", "-fa", "on", "--seed", "0"]
+    log = open(OUT / f"server_{port}.log", "a", encoding="utf-8")
     proc = subprocess.Popen(cmd, stdout=log, stderr=subprocess.STDOUT)
     import requests
     for _ in range(300):
         try:
-            if requests.get(f"http://127.0.0.1:{PORT}/health", timeout=2).status_code == 200:
+            if requests.get(f"http://127.0.0.1:{port}/health", timeout=2).status_code == 200:
                 return proc, cmd
         except Exception:
             pass
@@ -261,16 +265,17 @@ def eval_condition(cond: str, limit: int | None = None):
     todo = [i for i in ids if i not in done]
     print(f"[{cond}] {len(todo)} of {len(ids)} problems to generate", flush=True)
     if todo:
-        proc, cmd = _server(gguf)
+        servers = [_server(gguf, PORT + k) for k in range(SERVERS)]
+        cmd = servers[0][1]
         t0 = time.time()
 
-        def one(pid):
+        def one(pid, port):
             r = rows[pid]
             prompt = tok.apply_chat_template([{"role": "user", "content": Q.build_prompt(r["problem"])}], tokenize=False,
                                              add_generation_prompt=True, enable_thinking=True,
                                              chat_template=template)
             body = {"prompt": prompt, **SAMPLING, "seed": seed_of(pid), "cache_prompt": False}
-            js = requests.post(f"http://127.0.0.1:{PORT}/completion", json=body, timeout=7200).json()
+            js = requests.post(f"http://127.0.0.1:{port}/completion", json=body, timeout=7200).json()
             text = js["content"]
             pred = Q.extract(text)[0]
             return {"id": pid, "answer": r["answer"], "pred": pred, "correct": bool(Q.is_correct(pred, r["answer"])),
@@ -278,18 +283,36 @@ def eval_condition(cond: str, limit: int | None = None):
                     "cut": js.get("stop_type") == "limit", "tail_dup8": tail_dup8(text),
                     "closed_thinking": "</think>" in text, "text": text}
 
-        try:
-            with cf.ThreadPoolExecutor(PARALLEL) as ex, open(gen_path, "a", encoding="utf-8") as f:
-                for k, res in enumerate(ex.map(one, todo), 1):
+        import queue, threading
+        q, lock, count = queue.Queue(), threading.Lock(), [0]
+        for pid in todo:
+            q.put(pid)
+
+        def worker(port):   # SLOTS workers per server, so no server ever has more requests than slots
+            while True:
+                try:
+                    pid = q.get_nowait()
+                except queue.Empty:
+                    return
+                res = one(pid, port)
+                with lock, open(gen_path, "a", encoding="utf-8") as f:
                     f.write(json.dumps(res, ensure_ascii=False) + "\n")
-                    f.flush()
-                    if k % 10 == 0 or k == len(todo):
-                        print(f"  {k}/{len(todo)} done, {time.time() - t0:.0f}s", flush=True)
+                    count[0] += 1
+                    if count[0] % 10 == 0 or count[0] == len(todo):
+                        print(f"  {count[0]}/{len(todo)} done, {time.time() - t0:.0f}s", flush=True)
+
+        try:
+            ts = [threading.Thread(target=worker, args=(PORT + k % SERVERS,)) for k in range(PARALLEL)]
+            for t in ts:
+                t.start()
+            for t in ts:
+                t.join()
         finally:
-            proc.terminate()
-            proc.wait(timeout=60)
+            for proc, _ in servers:
+                proc.terminate()
+                proc.wait(timeout=60)
         _j(odir / "engine.json", {"llama_cpp": LLAMA_TAG, "cmd": [Path(cmd[0]).name, *cmd[1:]], "sampling": SAMPLING,
-                                  "parallel": PARALLEL, "seconds": round(time.time() - t0), "gguf": gguf.name,
+                                  "servers": SERVERS, "slots_per_server": SLOTS, "seconds": round(time.time() - t0), "gguf": gguf.name,
                                   "gguf_sha256_head": hashlib.sha256(gguf.read_bytes()[:1 << 24]).hexdigest()})
     summarize(cond)
 
